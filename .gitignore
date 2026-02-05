@@ -1,0 +1,16 @@
+*env
+/env
+*.pyc
+__pycache__/
+*node_modules
+*.log
+/node_modules
+*.env
+*migrations
+/migrations
+.vscode
+*.vscode
+*sheets
+/sheets
+*.db
+*.sqlite3

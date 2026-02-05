@@ -1,0 +1,956 @@
+ID,Title,Vulnerability_Mapping,Abstraction,Description,Impact,Mitigation,Comments,Alternate_Terms
+20,Improper Input Validation,DISCOURAGED,Class,"The product receives input or data, but it does
+        not validate or incorrectly validates that the input has the
+        properties that are required to process the data safely and
+        correctly.
+
+Input validation is a frequently-used technique
+	   for checking potentially dangerous inputs in order to
+	   ensure that the inputs are safe for processing within the
+	   code, or when communicating with other components.
+Input can consist of:
+
+raw data - strings, numbers, parameters, file contents, etc.
+metadata - information about the raw data, such as headers or size
+
+Data can be simple or structured.  Structured data
+	   can be composed of many nested layers, composed of
+	   combinations of metadata and raw data, with other simple or
+	   structured data.
+Many properties of raw data or metadata may need
+	   to be validated upon entry into the code, such
+	   as:
+
+specified quantities such as size, length, frequency, price, rate, number of operations, time, etc.
+implied or derived quantities, such as the actual size of a file instead of a specified size
+indexes, offsets, or positions into more complex data structures
+symbolic keys or other elements into hash tables, associative arrays, etc.
+well-formedness, i.e. syntactic correctness - compliance with expected syntax 
+lexical token correctness - compliance with rules for what is treated as a token
+specified or derived type - the actual type of the input (or what the input appears to be)
+consistency - between individual data elements, between raw data and metadata, between references, etc.
+conformance to domain-specific rules, e.g. business logic 
+equivalence - ensuring that equivalent inputs are treated the same
+authenticity, ownership, or other attestations about the input, e.g. a cryptographic signature to prove the source of the data
+
+Implied or derived properties of data must often
+	   be calculated or inferred by the code itself.  Errors in
+	   deriving properties may be considered a contributing factor
+	   to improper input validation.","DoS: Crash, Exit, or Restart; DoS: Resource Consumption (CPU); DoS: Resource Consumption (Memory)
+Scope: Availability An attacker could provide unexpected values and cause a program crash or arbitrary control of resource allocation, leading to excessive consumption of resources such as memory and CPU.
+
+Read Memory; Read Files or Directories
+Scope: Confidentiality An attacker could read confidential data if they are able to control resource references.
+
+Modify Memory; Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability An attacker could use malicious input to modify data or possibly alter control flow in unexpected ways, including arbitrary command execution.","Strategy: Attack Surface Reduction Consider using language-theoretic security (LangSec) techniques that characterize inputs using a formal language and build ""recognizers"" for that language.  This effectively requires parsing to be a distinct layer that effectively enforces a boundary between raw input and internal data representations, instead of allowing parser code to be scattered throughout the program, where it could be subject to errors or inconsistencies that create weaknesses. [ REF-1109 ] [ REF-1110 ] [ REF-1111 ]
+
+Strategy: Libraries or Frameworks Use an input validation framework such as Struts or the OWASP ESAPI Validation API. Note that using a framework does not automatically address all input validation problems; be mindful of weaknesses that could arise from misusing the framework itself ( CWE-1173 ).
+
+Strategy: Attack Surface Reduction Understand all the potential areas where untrusted inputs can enter the product, including but not limited to: parameters or arguments, cookies, anything read from the network, environment variables, reverse DNS lookups, query results, request headers, URL components, e-mail, files, filenames, databases, and any external systems that provide data to the application. Remember that such inputs may be obtained indirectly through API calls.
+
+Strategy: Input Validation Assume all input is malicious. Use an ""accept known good"" input validation strategy, i.e., use a list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does. When performing input validation, consider all potentially relevant properties, including length, type of input, the full range of acceptable values, missing or extra inputs, syntax, consistency across related fields, and conformance to business rules. As an example of business rule logic, ""boat"" may be syntactically valid because it only contains alphanumeric characters, but it is not valid if the input is only expected to contain colors such as ""red"" or ""blue."" Do not rely exclusively on looking for malicious or malformed inputs.  This is likely to miss at least one undesirable input, especially if the code's environment changes. This can give attackers enough room to bypass the intended validation. However, denylists can be useful for detecting potential attacks or determining which inputs are so malformed that they should be rejected outright. Effectiveness: High
+
+For any security checks that are performed on the client side, ensure that these checks are duplicated on the server side, in order to avoid CWE-602 . Attackers can bypass the client-side checks by modifying values after the checks have been performed, or by changing the client to remove the client-side checks entirely. Then, these modified values would be submitted to the server. Even though client-side checks provide minimal benefits with respect to server-side security, they are still useful. First, they can support intrusion detection. If the server receives input that should have been rejected by the client, then it may be an indication of an attack. Second, client-side error-checking can provide helpful feedback to the user about the expectations for valid input. Third, there may be a reduction in server-side processing time for accidental input errors, although this is typically a small savings.
+
+When your application combines data from multiple sources, perform the validation after the sources have been combined. The individual data elements may pass the validation step but violate the intended restrictions after they have been combined.
+
+Be especially careful to validate all input when invoking code that crosses language boundaries, such as from an interpreted language to native code. This could create an unexpected interaction between the language boundaries. Ensure that you are not violating any of the expectations of the language with which you are interfacing. For example, even though Java may not be susceptible to buffer overflows, providing a large argument in a call to native code might trigger an overflow.
+
+Directly convert your input type into the expected data type, such as using a conversion function that translates a string into a number. After converting to the expected data type, ensure that the input's values fall within the expected range of allowable values and that multi-field consistencies are maintained.
+
+Inputs should be decoded and canonicalized to the application's current internal representation before being validated ( CWE-180 , CWE-181 ). Make sure that your application does not inadvertently decode the same input twice ( CWE-174 ). Such errors could be used to bypass allowlist schemes by introducing dangerous inputs after they have been checked. Use libraries such as the OWASP ESAPI Canonicalization control. Consider performing repeated canonicalization until your input does not change any more. This will avoid double-decoding and similar scenarios, but it might inadvertently modify inputs that are allowed to contain properly-encoded dangerous content.
+
+When exchanging data between components, ensure that both components are using the same character encoding. Ensure that the proper encoding is applied at each interface. Explicitly set the encoding you are using whenever the protocol allows you to do so.","Within CWE, the ""input validation"" term focuses on the act of checking whether an input is already safe, which is different from other techniques that ensure safe processing of input.  Carefully perform root-cause analysis to be sure that the issue is not due to techniques that attempt to transform potentially-dangerous input into something safe, such as filtering ( CWE-790 ) - which attempts to remove dangerous inputs - or encoding/escaping ( CWE-116 ), which attempts to ensure that the input is not misinterpreted when it is included in output to another component. If the issue is truly due to imroper input validation, consider using lower-level children such as Improper Use of Validation Framework ( CWE-1173 ) or improper validation involving specific types or properties of input such as Specified Quantity ( CWE-1284 ); Specified Index, Position, or Offset ( CWE-1285 ); Syntactic Correctness ( CWE-1286 ); Specified Type ( CWE-1287 ); Consistency within Input ( CWE-1288 ); or Unsafe Equivalence ( CWE-1289 ).",N/A
+67,Improper Handling of Windows Device Names,ALLOWED,Variant,"The product constructs pathnames from user input, but it does not handle or incorrectly handles a pathname containing a Windows device name such as AUX or CON. This typically leads to denial of service or an information exposure when the application attempts to process the pathname as a regular file.
+
+Not properly handling virtual filenames (e.g. AUX, CON, PRN, COM1, LPT1) can result in different types of vulnerabilities. In some cases an attacker can request a device via injection of a virtual filename in a URL, which may cause an error that leads to a denial of service or an error page that reveals sensitive information. A product that allows device names to bypass filtering runs the risk of an attacker injecting malicious code in a file with the name of a device.","DoS: Crash, Exit, or Restart; Read Application Data; Other
+Scope: Availability, Confidentiality, Other",Be familiar with the device names in the operating system where your system is deployed. Check input for these device names.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+78,Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection'),ALLOWED,Base,"The product constructs all or part of an OS command using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended OS command when it is sent to a downstream component.
+
+This weakness can lead to a vulnerability in environments in which the attacker does not have direct access to the operating system, such as in web applications. Alternately, if the weakness occurs in a privileged program, it could allow the attacker to specify commands that normally would not be accessible, or to call alternate commands with privileges that the attacker does not have. The problem is exacerbated if the compromised process does not follow the principle of least privilege, because the attacker-controlled commands may run with special system privileges that increases the amount of damage.
+There are at least two subtypes of OS command injection:
+
+The application intends to execute a single, fixed program that is under its own control. It intends to use externally-supplied inputs as arguments to that program. For example, the program might use system(""nslookup [HOSTNAME]"") to run nslookup and allow the user to supply a HOSTNAME, which is used as an argument. Attackers cannot prevent nslookup from executing. However, if the program does not remove command separators from the HOSTNAME argument, attackers could place the separators into the arguments, which allows them to execute their own program after nslookup has finished executing.
+The application accepts an input that it uses to fully select which program to run, as well as which commands to use. The application simply redirects this entire command to the operating system. For example, the program might use ""exec([COMMAND])"" to execute the [COMMAND] that was supplied by the user. If the COMMAND is under attacker control, then the attacker can execute arbitrary commands or programs. If the command is being executed using functions like exec() and CreateProcess(), the attacker might not be able to combine multiple commands together in the same line.
+
+From a weakness standpoint, these variants represent distinct programmer errors. In the first variant, the programmer clearly intends that input from untrusted parties will be part of the arguments in the command to be executed. In the second variant, the programmer does not intend for the command to be accessible to any untrusted party, but the programmer probably has not accounted for alternate ways in which malicious attackers can provide input.","Execute Unauthorized Code or Commands; DoS: Crash, Exit, or Restart; Read Files or Directories; Modify Files or Directories; Read Application Data; Modify Application Data; Hide Activities
+Scope: Confidentiality, Integrity, Availability, Non-Repudiation Attackers could execute unauthorized operating system commands, which could then be used to disable the product, or read and modify data for which the attacker does not have permissions to access directly. Since the targeted application is directly executing the commands instead of the attacker, any malicious activities may appear to come from the application or the application's owner.","If at all possible, use library calls rather than external processes to recreate the desired functionality.
+
+Strategy: Sandbox or Jail Run the code in a ""jail"" or similar sandbox environment that enforces strict boundaries between the process and the operating system. This may effectively restrict which files can be accessed in a particular directory or which commands can be executed by the software. OS-level examples include the Unix chroot jail, AppArmor, and SELinux. In general, managed code may provide some protection. For example, java.io.FilePermission in the Java SecurityManager allows the software to specify restrictions on file operations. This may not be a feasible solution, and it only limits the impact to the operating system; the rest of the application may still be subject to compromise. Be careful to avoid CWE-243 and other weaknesses related to jails. Effectiveness: Limited Note: The effectiveness of this mitigation depends on the prevention capabilities of the specific sandbox or jail being used and might only help to reduce the scope of an attack, such as restricting the attacker to certain system calls or limiting the portion of the file system that can be accessed.
+
+Strategy: Attack Surface Reduction For any data that will be used to generate a command to be executed, keep as much of that data out of external control as possible. For example, in web applications, this may require storing the data locally in the session's state instead of sending it out to the client in a hidden form field.
+
+For any security checks that are performed on the client side, ensure that these checks are duplicated on the server side, in order to avoid CWE-602 . Attackers can bypass the client-side checks by modifying values after the checks have been performed, or by changing the client to remove the client-side checks entirely. Then, these modified values would be submitted to the server.
+
+Strategy: Libraries or Frameworks Use a vetted library or framework that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid. For example, consider using the ESAPI Encoding control [ REF-45 ] or a similar tool, library, or framework. These will help the programmer encode outputs in a manner less prone to error.
+
+Strategy: Output Encoding While it is risky to use dynamically-generated query strings, code, or commands that mix control and data together, sometimes it may be unavoidable. Properly quote arguments and escape any special characters within those arguments. The most conservative approach is to escape or filter all characters that do not pass an extremely strict allowlist (such as everything that is not alphanumeric or white space). If some special characters are still needed, such as white space, wrap each argument in quotes after the escaping/filtering step. Be careful of argument injection ( CWE-88 ).
+
+If the program to be executed allows arguments to be specified within an input file or from standard input, then consider using that mode to pass arguments instead of the command line.
+
+Strategy: Parameterization If available, use structured mechanisms that automatically enforce the separation between data and code. These mechanisms may be able to provide the relevant quoting, encoding, and validation automatically, instead of relying on the developer to provide this capability at every point where output is generated. Some languages offer multiple functions that can be used to invoke commands. Where possible, identify any function that invokes a command shell using a single string, and replace it with a function that requires individual arguments. These functions typically perform appropriate quoting and filtering of arguments. For example, in C, the system() function accepts a string that contains the entire command to be executed, whereas execl(), execve(), and others require an array of strings, one for each argument. In Windows, CreateProcess() only accepts one command at a time. In Perl, if system() is provided with an array of arguments, then it will quote each of the arguments.
+
+Strategy: Input Validation Assume all input is malicious. Use an ""accept known good"" input validation strategy, i.e., use a list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does. When performing input validation, consider all potentially relevant properties, including length, type of input, the full range of acceptable values, missing or extra inputs, syntax, consistency across related fields, and conformance to business rules. As an example of business rule logic, ""boat"" may be syntactically valid because it only contains alphanumeric characters, but it is not valid if the input is only expected to contain colors such as ""red"" or ""blue."" Do not rely exclusively on looking for malicious or malformed inputs.  This is likely to miss at least one undesirable input, especially if the code's environment changes. This can give attackers enough room to bypass the intended validation. However, denylists can be useful for detecting potential attacks or determining which inputs are so malformed that they should be rejected outright. When constructing OS command strings, use stringent allowlists that limit the character set based on the expected value of the parameter in the request. This will indirectly limit the scope of an attack, but this technique is less important than proper output encoding and escaping. Note that proper output encoding, escaping, and quoting is the most effective solution for preventing OS command injection, although input validation may provide some defense-in-depth. This is because it effectively limits what will appear in output. Input validation will not always prevent OS command injection, especially if you are required to support free-form text fields that could contain arbitrary characters. For example, when invoking a mail program, you might need to allow the subject field to contain otherwise-dangerous inputs like "";"" and "">"" characters, which would need to be escaped or otherwise handled. In this case, stripping the character might reduce the risk of OS command injection, but it would produce incorrect behavior because the subject field would not be recorded as the user intended. This might seem to be a minor inconvenience, but it could be more important when the program relies on well-structured subject lines in order to pass messages to other components. Even if you make a mistake in your validation (such as forgetting one out of 100 input fields), appropriate encoding is still likely to protect you from injection-based attacks. As long as it is not done in isolation, input validation is still a useful technique, since it may significantly reduce your attack surface, allow you to detect some attacks, and provide other security benefits that proper encoding does not address.
+
+Strategy: Enforcement by Conversion When the set of acceptable objects, such as filenames or URLs, is limited or known, create a mapping from a set of fixed input values (such as numeric IDs) to the actual filenames or URLs, and reject all other inputs.
+
+Strategy: Compilation or Build Hardening Run the code in an environment that performs automatic taint propagation and prevents any command execution that uses tainted variables, such as Perl's ""-T"" switch. This will force the program to perform validation steps that remove the taint, although you must be careful to correctly validate your inputs so that you do not accidentally mark dangerous inputs as untainted (see CWE-183 and CWE-184 ).
+
+Strategy: Environment Hardening Run the code in an environment that performs automatic taint propagation and prevents any command execution that uses tainted variables, such as Perl's ""-T"" switch. This will force the program to perform validation steps that remove the taint, although you must be careful to correctly validate your inputs so that you do not accidentally mark dangerous inputs as untainted (see CWE-183 and CWE-184 ).
+
+Ensure that error messages only contain minimal details that are useful to the intended audience and no one else. The messages need to strike the balance between being too cryptic (which can confuse users) or being too detailed (which may reveal more than intended). The messages should not reveal the methods that were used to determine the error. Attackers can use detailed information to refine or optimize their original attack, thereby increasing their chances of success. If errors must be captured in some detail, record them in log messages, but consider what could occur if the log messages can be viewed by attackers. Highly sensitive information such as passwords should never be saved to log files. Avoid inconsistent messaging that might accidentally tip off an attacker about internal state, such as whether a user account exists or not. In the context of OS Command Injection, error information passed back to the user might reveal whether an OS command is being executed and possibly which command is being used.
+
+Strategy: Sandbox or Jail Use runtime policy enforcement to create an allowlist of allowable commands, then prevent use of any command that does not appear in the allowlist. Technologies such as AppArmor are available to do this.
+
+Strategy: Firewall Use an application firewall that can detect attacks against this weakness. It can be beneficial in cases in which the code cannot be fixed (because it is controlled by a third party), as an emergency prevention measure while more comprehensive software assurance measures are applied, or to provide defense in depth [ REF-1481 ]. Effectiveness: Moderate Note: An application firewall might not cover all possible input vectors. In addition, attack techniques might be available to bypass the protection mechanism, such as using malformed inputs that can still be processed by the component that receives those inputs. Depending on functionality, an application firewall might inadvertently reject or modify legitimate requests. Finally, some manual effort may be required for customization.
+
+Strategy: Environment Hardening Run your code using the lowest privileges that are required to accomplish the necessary tasks [ REF-76 ]. If possible, create isolated accounts with limited privileges that are only used for a single task. That way, a successful attack will not immediately give the attacker access to the rest of the software or its environment. For example, database applications rarely need to run as the database administrator, especially in day-to-day operations.
+
+Strategy: Environment Hardening When using PHP, configure the application so that it does not use register_globals. During implementation, develop the application so that it does not rely on this feature, but be wary of implementing a register_globals emulation that is subject to weaknesses such as CWE-95 , CWE-621 , and similar issues.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,"Shell injection
+                                    
+
+
+
+
+
+                                        Shell metacharacters
+                                    
+
+
+
+
+
+                                        OS Command Injection"
+88,Improper Neutralization of Argument Delimiters in a Command ('Argument Injection'),ALLOWED,Base,"The product constructs a string for a command to be executed by a separate component
+in another control sphere, but it does not properly delimit the
+intended arguments, options, or switches within that command string.
+
+When creating commands using interpolation into a string, developers may assume that only the arguments/options that they specify will be processed.  This assumption may be even stronger when the programmer has encoded the command in a way that prevents separate commands from being provided maliciously, e.g. in the case of shell metacharacters.  When constructing the command, the developer may use whitespace or other delimiters that are required to separate arguments when the command. However, if an attacker can provide an untrusted input that contains argument-separating delimiters, then the resulting command will have more arguments than intended by the developer.  The attacker may then be able to change the behavior of the command.  Depending on the functionality supported by the extraneous arguments, this may have security-relevant consequences.","Execute Unauthorized Code or Commands; Alter Execution Logic; Read Application Data; Modify Application Data
+Scope: Confidentiality, Integrity, Availability, Other An attacker could include arguments that allow unintended commands or code to be executed, allow sensitive data to be read or modified or could cause other unintended behavior.","Strategy: Parameterization Where possible, avoid building a single string that contains the command and its arguments.  Some languages or frameworks have functions that support specifying independent arguments, e.g. as an array, which is used to automatically perform the appropriate quoting or escaping while building the command.  For example, in PHP, escapeshellarg() can be used to escape a single argument to system(), or exec() can be called with an array of arguments.  In C, code can often be refactored from using system() - which accepts a single string - to using exec(), which requires separate function arguments for each parameter. Effectiveness: High
+
+Strategy: Input Validation Understand all the potential areas where untrusted inputs can enter your product: parameters or arguments, cookies, anything read from the network, environment variables, request headers as well as content, URL components, e-mail, files, databases, and any external systems that provide data to the application. Perform input validation at well-defined interfaces.
+
+Strategy: Input Validation Assume all input is malicious. Use an ""accept known good"" input validation strategy, i.e., use a list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does. When performing input validation, consider all potentially relevant properties, including length, type of input, the full range of acceptable values, missing or extra inputs, syntax, consistency across related fields, and conformance to business rules. As an example of business rule logic, ""boat"" may be syntactically valid because it only contains alphanumeric characters, but it is not valid if the input is only expected to contain colors such as ""red"" or ""blue."" Do not rely exclusively on looking for malicious or malformed inputs.  This is likely to miss at least one undesirable input, especially if the code's environment changes. This can give attackers enough room to bypass the intended validation. However, denylists can be useful for detecting potential attacks or determining which inputs are so malformed that they should be rejected outright.
+
+Directly convert your input type into the expected data type, such as using a conversion function that translates a string into a number. After converting to the expected data type, ensure that the input's values fall within the expected range of allowable values and that multi-field consistencies are maintained.
+
+Inputs should be decoded and canonicalized to the application's current internal representation before being validated ( CWE-180 , CWE-181 ). Make sure that your application does not inadvertently decode the same input twice ( CWE-174 ). Such errors could be used to bypass allowlist schemes by introducing dangerous inputs after they have been checked. Use libraries such as the OWASP ESAPI Canonicalization control. Consider performing repeated canonicalization until your input does not change any more. This will avoid double-decoding and similar scenarios, but it might inadvertently modify inputs that are allowed to contain properly-encoded dangerous content.
+
+When exchanging data between components, ensure that both components are using the same character encoding. Ensure that the proper encoding is applied at each interface. Explicitly set the encoding you are using whenever the protocol allows you to do so.
+
+When your application combines data from multiple sources, perform the validation after the sources have been combined. The individual data elements may pass the validation step but violate the intended restrictions after they have been combined.
+
+Use automated static analysis tools that target this type of weakness. Many modern techniques use data flow analysis to minimize the number of false positives. This is not a perfect solution, since 100% accuracy and coverage are not feasible.
+
+Use dynamic tools and techniques that interact with the product using large test suites with many diverse inputs, such as fuzz testing (fuzzing), robustness testing, and fault injection. The product's operation may slow down, but it should not become unstable, crash, or generate incorrect results.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+119,Improper Restriction of Operations within the Bounds of a Memory Buffer,DISCOURAGED,Class,"The product performs operations on a memory buffer, but it reads from or writes to a memory location outside the buffer's intended boundary. This may result in read or write operations on unexpected memory locations that could be linked to other variables, data structures, or internal program data.","Execute Unauthorized Code or Commands; Modify Memory
+Scope: Integrity, Confidentiality, Availability If the memory accessible by the attacker can be effectively controlled, it may be possible to execute arbitrary code, as with a standard buffer overflow. If the attacker can overwrite a pointer's worth of memory (usually 32 or 64 bits), they can alter the intended control flow by redirecting a function pointer to their own malicious code. Even when the attacker can only modify a single byte arbitrary code execution can be possible. Sometimes this is because the same problem can be exploited repeatedly to the same effect. Other times it is because the attacker can overwrite security-critical application-specific data -- such as a flag indicating whether the user is an administrator.
+
+Read Memory; DoS: Crash, Exit, or Restart; DoS: Resource Consumption (CPU); DoS: Resource Consumption (Memory)
+Scope: Availability, Confidentiality Out of bounds memory access will very likely result in the corruption of relevant memory, and perhaps instructions, possibly leading to a crash. Other attacks leading to lack of availability are possible, including putting the program into an infinite loop.
+
+Read Memory
+Scope: Confidentiality In the case of an out-of-bounds read, the attacker may have access to sensitive information. If the sensitive information contains system details, such as the current buffer's position in memory, this knowledge can be used to craft further attacks, possibly with more severe consequences.","Strategy: Language Selection Use a language that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid. For example, many languages that perform their own memory management, such as Java and Perl, are not subject to buffer overflows. Other languages, such as Ada and C#, typically provide overflow protection, but the protection can be disabled by the programmer. Be wary that a language's interface to native code may still be subject to overflows, even if the language itself is theoretically safe.
+
+Strategy: Libraries or Frameworks Use a vetted library or framework that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid. Examples include the Safe C String Library (SafeStr) by Messier and Viega [ REF-57 ], and the Strsafe.h library from Microsoft [ REF-56 ]. These libraries provide safer versions of overflow-prone string-handling functions. Note: This is not a complete solution, since many buffer overflows are not related to strings.
+
+Strategy: Environment Hardening Use automatic buffer overflow detection mechanisms that are offered by certain compilers or compiler extensions. Examples include: the Microsoft Visual Studio /GS flag, Fedora/Red Hat FORTIFY_SOURCE GCC flag, StackGuard, and ProPolice, which provide various mechanisms including canary-based detection and range/index checking. D3-SFCV (Stack Frame Canary Validation) from D3FEND [ REF-1334 ] discusses canary-based detection in detail. Effectiveness: Defense in Depth Note: This is not necessarily a complete solution, since these mechanisms only detect certain types of overflows. In addition, the result is still a denial of service, since the typical response is to exit the application.
+
+Consider adhering to the following rules when allocating and managing an application's memory: Double check that the buffer is as large as specified. When using functions that accept a number of bytes to copy, such as strncpy(), be aware that if the destination buffer size is equal to the source buffer size, it may not NULL-terminate the string. Check buffer boundaries if accessing the buffer in a loop and make sure there is no danger of writing past the allocated space. If necessary, truncate all input strings to a reasonable length before passing them to the copy and concatenation functions.
+
+Strategy: Environment Hardening Run or compile the software using features or extensions that randomly arrange the positions of a program's executable and libraries in memory. Because this makes the addresses unpredictable, it can prevent an attacker from reliably jumping to exploitable code. Examples include Address Space Layout Randomization (ASLR) [ REF-58 ] [ REF-60 ] and Position-Independent Executables (PIE) [ REF-64 ]. Imported modules may be similarly realigned if their default memory addresses conflict with other modules, in a process known as ""rebasing"" (for Windows) and ""prelinking"" (for Linux) [ REF-1332 ] using randomly generated addresses. ASLR for libraries cannot be used in conjunction with prelink since it would require relocating the libraries at run-time, defeating the whole purpose of prelinking. For more information on these techniques see D3-SAOR (Segment Address Offset Randomization) from D3FEND [ REF-1335 ]. Effectiveness: Defense in Depth Note: These techniques do not provide a complete solution.  For instance, exploits frequently use a bug that discloses memory addresses in order to maximize reliability of code execution [ REF-1337 ]. It has also been shown that a side-channel attack can bypass ASLR [ REF-1333 ].
+
+Strategy: Environment Hardening Use a CPU and operating system that offers Data Execution Protection (using hardware NX or XD bits) or the equivalent techniques that simulate this feature in software, such as PaX [ REF-60 ] [ REF-61 ]. These techniques ensure that any instruction executed is exclusively at a memory address that is part of the code segment. For more information on these techniques see D3-PSEP (Process Segment Execution Prevention) from D3FEND [ REF-1336 ]. Effectiveness: Defense in Depth Note: This is not a complete solution, since buffer overflows could be used to overwrite nearby variables to modify the software's state in dangerous ways. In addition, it cannot be used in cases in which self-modifying code is required. Finally, an attack could still cause a denial of service, since the typical response is to exit the application.
+
+Replace unbounded copy functions with analogous functions that support length arguments, such as strcpy with strncpy. Create these if they are not available. Effectiveness: Moderate Note: This approach is still susceptible to calculation errors, including issues such as off-by-one errors ( CWE-193 ) and incorrectly calculating buffer lengths ( CWE-131 ).","Look at CWE-119 's children and consider mapping to CWEs such as CWE-787 : Out-of-bounds Write, CWE-125 : Out-of-bounds Read, or others.","Buffer Overflow
+                                    
+
+This term has many different meanings to different audiences.  From a CWE mapping perspective, this term should be avoided where possible. Some researchers, developers, and tools intend for it to mean ""write past the end of a buffer,"" whereas others use the same term to mean ""any read or write outside the boundaries of a buffer, whether before the beginning of the buffer or after the end of the buffer.""  Others could mean ""any action after the end of a buffer, whether it is a read or write."" Since the term is commonly used for exploitation and for vulnerabilities, it further confuses things.
+
+
+
+
+                                        buffer overrun
+                                    
+
+Some prominent vendors and researchers use the term ""buffer overrun,"" but most people use ""buffer overflow."" See the alternate term for ""buffer overflow"" for context.
+
+
+
+
+                                        memory safety
+                                    
+
+Generally used for techniques that avoid weaknesses related to memory access, such as those identified by CWE-119 and its descendants. However, the term is not formal, and there is likely disagreement between practitioners as to which weaknesses are implicitly covered by the ""memory safety"" term."
+120,Buffer Copy without Checking Size of Input ('Classic Buffer Overflow'),ALLOWED,Base,The product copies an input buffer to an output buffer without verifying that the size of the input buffer is less than the size of the output buffer.,"Modify Memory; Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability Buffer overflows often can be used to execute arbitrary code, which is usually outside the scope of the product's implicit security policy. This can often be used to subvert any other security service.
+
+Modify Memory; DoS: Crash, Exit, or Restart; DoS: Resource Consumption (CPU)
+Scope: Availability Buffer overflows generally lead to crashes. Other attacks leading to lack of availability are possible, including putting the product into an infinite loop.","Strategy: Language Selection Use a language that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid. For example, many languages that perform their own memory management, such as Java and Perl, are not subject to buffer overflows. Other languages, such as Ada and C#, typically provide overflow protection, but the protection can be disabled by the programmer. Be wary that a language's interface to native code may still be subject to overflows, even if the language itself is theoretically safe.
+
+Strategy: Libraries or Frameworks Use a vetted library or framework that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid. Examples include the Safe C String Library (SafeStr) by Messier and Viega [ REF-57 ], and the Strsafe.h library from Microsoft [ REF-56 ]. These libraries provide safer versions of overflow-prone string-handling functions. Note: This is not a complete solution, since many buffer overflows are not related to strings.
+
+Strategy: Environment Hardening Use automatic buffer overflow detection mechanisms that are offered by certain compilers or compiler extensions. Examples include: the Microsoft Visual Studio /GS flag, Fedora/Red Hat FORTIFY_SOURCE GCC flag, StackGuard, and ProPolice, which provide various mechanisms including canary-based detection and range/index checking. D3-SFCV (Stack Frame Canary Validation) from D3FEND [ REF-1334 ] discusses canary-based detection in detail. Effectiveness: Defense in Depth Note: This is not necessarily a complete solution, since these mechanisms only detect certain types of overflows. In addition, the result is still a denial of service, since the typical response is to exit the application.
+
+Consider adhering to the following rules when allocating and managing an application's memory: Double check that your buffer is as large as you specify. When using functions that accept a number of bytes to copy, such as strncpy(), be aware that if the destination buffer size is equal to the source buffer size, it may not NULL-terminate the string. Check buffer boundaries if accessing the buffer in a loop and make sure there is no danger of writing past the allocated space. If necessary, truncate all input strings to a reasonable length before passing them to the copy and concatenation functions.
+
+Strategy: Input Validation Assume all input is malicious. Use an ""accept known good"" input validation strategy, i.e., use a list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does. When performing input validation, consider all potentially relevant properties, including length, type of input, the full range of acceptable values, missing or extra inputs, syntax, consistency across related fields, and conformance to business rules. As an example of business rule logic, ""boat"" may be syntactically valid because it only contains alphanumeric characters, but it is not valid if the input is only expected to contain colors such as ""red"" or ""blue."" Do not rely exclusively on looking for malicious or malformed inputs.  This is likely to miss at least one undesirable input, especially if the code's environment changes. This can give attackers enough room to bypass the intended validation. However, denylists can be useful for detecting potential attacks or determining which inputs are so malformed that they should be rejected outright.
+
+For any security checks that are performed on the client side, ensure that these checks are duplicated on the server side, in order to avoid CWE-602 . Attackers can bypass the client-side checks by modifying values after the checks have been performed, or by changing the client to remove the client-side checks entirely. Then, these modified values would be submitted to the server.
+
+Strategy: Environment Hardening Run or compile the software using features or extensions that randomly arrange the positions of a program's executable and libraries in memory. Because this makes the addresses unpredictable, it can prevent an attacker from reliably jumping to exploitable code. Examples include Address Space Layout Randomization (ASLR) [ REF-58 ] [ REF-60 ] and Position-Independent Executables (PIE) [ REF-64 ]. Imported modules may be similarly realigned if their default memory addresses conflict with other modules, in a process known as ""rebasing"" (for Windows) and ""prelinking"" (for Linux) [ REF-1332 ] using randomly generated addresses. ASLR for libraries cannot be used in conjunction with prelink since it would require relocating the libraries at run-time, defeating the whole purpose of prelinking. For more information on these techniques see D3-SAOR (Segment Address Offset Randomization) from D3FEND [ REF-1335 ]. Effectiveness: Defense in Depth Note: These techniques do not provide a complete solution.  For instance, exploits frequently use a bug that discloses memory addresses in order to maximize reliability of code execution [ REF-1337 ]. It has also been shown that a side-channel attack can bypass ASLR [ REF-1333 ].
+
+Strategy: Environment Hardening Use a CPU and operating system that offers Data Execution Protection (using hardware NX or XD bits) or the equivalent techniques that simulate this feature in software, such as PaX [ REF-60 ] [ REF-61 ]. These techniques ensure that any instruction executed is exclusively at a memory address that is part of the code segment. For more information on these techniques see D3-PSEP (Process Segment Execution Prevention) from D3FEND [ REF-1336 ]. Effectiveness: Defense in Depth Note: This is not a complete solution, since buffer overflows could be used to overwrite nearby variables to modify the software's state in dangerous ways. In addition, it cannot be used in cases in which self-modifying code is required. Finally, an attack could still cause a denial of service, since the typical response is to exit the application.
+
+Most mitigating technologies at the compiler or OS level to date address only a subset of buffer overflow problems and rarely provide complete protection against even that subset. It is good practice to implement strategies to increase the workload of an attacker, such as leaving the attacker to guess an unknown value that changes every program execution.
+
+Replace unbounded copy functions with analogous functions that support length arguments, such as strcpy with strncpy. Create these if they are not available. Effectiveness: Moderate Note: This approach is still susceptible to calculation errors, including issues such as off-by-one errors ( CWE-193 ) and incorrectly calculating buffer lengths ( CWE-131 ).
+
+Strategy: Enforcement by Conversion When the set of acceptable objects, such as filenames or URLs, is limited or known, create a mapping from a set of fixed input values (such as numeric IDs) to the actual filenames or URLs, and reject all other inputs.
+
+Strategy: Environment Hardening Run your code using the lowest privileges that are required to accomplish the necessary tasks [ REF-76 ]. If possible, create isolated accounts with limited privileges that are only used for a single task. That way, a successful attack will not immediately give the attacker access to the rest of the software or its environment. For example, database applications rarely need to run as the database administrator, especially in day-to-day operations.
+
+Strategy: Sandbox or Jail Run the code in a ""jail"" or similar sandbox environment that enforces strict boundaries between the process and the operating system. This may effectively restrict which files can be accessed in a particular directory or which commands can be executed by the software. OS-level examples include the Unix chroot jail, AppArmor, and SELinux. In general, managed code may provide some protection. For example, java.io.FilePermission in the Java SecurityManager allows the software to specify restrictions on file operations. This may not be a feasible solution, and it only limits the impact to the operating system; the rest of the application may still be subject to compromise. Be careful to avoid CWE-243 and other weaknesses related to jails. Effectiveness: Limited Note: The effectiveness of this mitigation depends on the prevention capabilities of the specific sandbox or jail being used and might only help to reduce the scope of an attack, such as restricting the attacker to certain system calls or limiting the portion of the file system that can be accessed.","If the vulnerability being analyzed involves out-of-bounds reads, then consider CWE-125 or descendants. For root cause analysis: if there is any input validation, consider children of CWE-20 such as CWE-1284 . If there is a calculation error for buffer sizes, consider CWE-131 or similar.","Classic Buffer Overflow
+                                    
+
+This term was frequently used by vulnerability researchers during approximately 1995 to 2005 to differentiate buffer copies without length checks (which had been known about for decades) from other emerging weaknesses that still involved invalid accesses of buffers, as vulnerability researchers began to develop advanced exploitation techniques.
+
+
+
+
+                                        Unbounded Transfer"
+121,Stack-based Buffer Overflow,ALLOWED,Variant,"A stack-based buffer overflow condition is a condition where the buffer being overwritten is allocated on the stack (i.e., is a local variable or, rarely, a parameter to a function).","Modify Memory; DoS: Crash, Exit, or Restart; DoS: Resource Consumption (CPU); DoS: Resource Consumption (Memory)
+Scope: Availability Buffer overflows generally lead to crashes. Other attacks leading to lack of availability are possible, including putting the program into an infinite loop.
+
+Modify Memory; Execute Unauthorized Code or Commands; Bypass Protection Mechanism
+Scope: Integrity, Confidentiality, Availability, Access Control Buffer overflows often can be used to execute arbitrary code, which is usually outside the scope of a program's implicit security policy.
+
+Modify Memory; Execute Unauthorized Code or Commands; Bypass Protection Mechanism; Other
+Scope: Integrity, Confidentiality, Availability, Access Control, Other When the consequence is arbitrary code execution, this can often be used to subvert any other security service.","Strategy: Environment Hardening Use automatic buffer overflow detection mechanisms that are offered by certain compilers or compiler extensions. Examples include: the Microsoft Visual Studio /GS flag, Fedora/Red Hat FORTIFY_SOURCE GCC flag, StackGuard, and ProPolice, which provide various mechanisms including canary-based detection and range/index checking. D3-SFCV (Stack Frame Canary Validation) from D3FEND [ REF-1334 ] discusses canary-based detection in detail. Effectiveness: Defense in Depth Note: This is not necessarily a complete solution, since these mechanisms only detect certain types of overflows. In addition, the result is still a denial of service, since the typical response is to exit the application.
+
+Use an abstraction library to abstract away risky APIs. Not a complete solution.
+
+Implement and perform bounds checking on input.
+
+Do not use dangerous functions such as gets. Use safer, equivalent functions which check for boundary errors.
+
+Strategy: Environment Hardening Run or compile the software using features or extensions that randomly arrange the positions of a program's executable and libraries in memory. Because this makes the addresses unpredictable, it can prevent an attacker from reliably jumping to exploitable code. Examples include Address Space Layout Randomization (ASLR) [ REF-58 ] [ REF-60 ] and Position-Independent Executables (PIE) [ REF-64 ]. Imported modules may be similarly realigned if their default memory addresses conflict with other modules, in a process known as ""rebasing"" (for Windows) and ""prelinking"" (for Linux) [ REF-1332 ] using randomly generated addresses. ASLR for libraries cannot be used in conjunction with prelink since it would require relocating the libraries at run-time, defeating the whole purpose of prelinking. For more information on these techniques see D3-SAOR (Segment Address Offset Randomization) from D3FEND [ REF-1335 ]. Effectiveness: Defense in Depth Note: These techniques do not provide a complete solution.  For instance, exploits frequently use a bug that discloses memory addresses in order to maximize reliability of code execution [ REF-1337 ]. It has also been shown that a side-channel attack can bypass ASLR [ REF-1333 ].",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,"Stack Overflow
+                                    
+
+""Stack Overflow"" is often used to mean the same thing as stack-based buffer overflow, however it is also used on occasion to mean stack exhaustion, usually a result from an excessively recursive function call. Due to the ambiguity of the term, use of stack overflow to describe either circumstance is discouraged.
+
+
+
+
+                                        Stack Buffer Overflow"
+122,Heap-based Buffer Overflow,ALLOWED,Variant,"A heap overflow condition is a buffer overflow, where the buffer that can be overwritten is allocated in the heap portion of memory, generally meaning that the buffer was allocated using a routine such as malloc().","DoS: Crash, Exit, or Restart; DoS: Resource Consumption (CPU); DoS: Resource Consumption (Memory)
+Scope: Availability Buffer overflows generally lead to crashes. Other attacks leading to lack of availability are possible, including putting the program into an infinite loop.
+
+Execute Unauthorized Code or Commands; Bypass Protection Mechanism; Modify Memory
+Scope: Integrity, Confidentiality, Availability, Access Control Buffer overflows often can be used to execute arbitrary code, which is usually outside the scope of a program's implicit security policy. Besides important user data, heap-based overflows can be used to overwrite function pointers that may be living in memory, pointing it to the attacker's code. Even in applications that do not explicitly use function pointers, the run-time will usually leave many in memory. For example, object methods in C++ are generally implemented using function pointers. Even in C programs, there is often a global offset table used by the underlying runtime.
+
+Execute Unauthorized Code or Commands; Bypass Protection Mechanism; Other
+Scope: Integrity, Confidentiality, Availability, Access Control, Other When the consequence is arbitrary code execution, this can often be used to subvert any other security service.","Pre-design: Use a language or compiler that performs automatic bounds checking.
+
+Use an abstraction library to abstract away risky APIs. Not a complete solution.
+
+Strategy: Environment Hardening Use automatic buffer overflow detection mechanisms that are offered by certain compilers or compiler extensions. Examples include: the Microsoft Visual Studio /GS flag, Fedora/Red Hat FORTIFY_SOURCE GCC flag, StackGuard, and ProPolice, which provide various mechanisms including canary-based detection and range/index checking. D3-SFCV (Stack Frame Canary Validation) from D3FEND [ REF-1334 ] discusses canary-based detection in detail. Effectiveness: Defense in Depth Note: This is not necessarily a complete solution, since these mechanisms only detect certain types of overflows. In addition, the result is still a denial of service, since the typical response is to exit the application.
+
+Strategy: Environment Hardening Run or compile the software using features or extensions that randomly arrange the positions of a program's executable and libraries in memory. Because this makes the addresses unpredictable, it can prevent an attacker from reliably jumping to exploitable code. Examples include Address Space Layout Randomization (ASLR) [ REF-58 ] [ REF-60 ] and Position-Independent Executables (PIE) [ REF-64 ]. Imported modules may be similarly realigned if their default memory addresses conflict with other modules, in a process known as ""rebasing"" (for Windows) and ""prelinking"" (for Linux) [ REF-1332 ] using randomly generated addresses. ASLR for libraries cannot be used in conjunction with prelink since it would require relocating the libraries at run-time, defeating the whole purpose of prelinking. For more information on these techniques see D3-SAOR (Segment Address Offset Randomization) from D3FEND [ REF-1335 ]. Effectiveness: Defense in Depth Note: These techniques do not provide a complete solution.  For instance, exploits frequently use a bug that discloses memory addresses in order to maximize reliability of code execution [ REF-1337 ]. It has also been shown that a side-channel attack can bypass ASLR [ REF-1333 ].
+
+Implement and perform bounds checking on input.
+
+Strategy: Libraries or Frameworks Do not use dangerous functions such as gets. Look for their safe equivalent, which checks for the boundary.
+
+Use OS-level preventative functionality. This is not a complete solution, but it provides some defense in depth.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,"Heap Overflow
+                                    
+
+
+
+
+
+                                        Heap Buffer Overflow"
+123,Write-what-where Condition,ALLOWED,Base,"Any condition where the attacker has the ability to write an arbitrary value to an arbitrary location, often as the result of a buffer overflow.","Modify Memory; Execute Unauthorized Code or Commands; Gain Privileges or Assume Identity; DoS: Crash, Exit, or Restart; Bypass Protection Mechanism
+Scope: Integrity, Confidentiality, Availability, Access Control Clearly, write-what-where conditions can be used to write data to areas of memory outside the scope of a policy. Also, they almost invariably can be used to execute arbitrary code, which is usually outside the scope of a program's implicit security policy. If the attacker can overwrite a pointer's worth of memory (usually 32 or 64 bits), they can redirect a function pointer to their own malicious code. Even when the attacker can only modify a single byte arbitrary code execution can be possible. Sometimes this is because the same problem can be exploited repeatedly to the same effect. Other times it is because the attacker can overwrite security-critical application-specific data -- such as a flag indicating whether the user is an administrator.
+
+DoS: Crash, Exit, or Restart; Modify Memory
+Scope: Integrity, Availability Many memory accesses can lead to program termination, such as when writing to addresses that are invalid for the current process.
+
+Bypass Protection Mechanism; Other
+Scope: Access Control, Other When the consequence is arbitrary code execution, this can often be used to subvert any other security service.","Strategy: Language Selection Use a language that provides appropriate memory abstractions.
+
+Use OS-level preventative functionality integrated after the fact. Not a complete solution.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+125,Out-of-bounds Read,ALLOWED,Base,"The product reads data past the end, or before the beginning, of the intended buffer.","Read Memory
+Scope: Confidentiality An attacker could get secret values such as cryptographic keys, PII, memory addresses, or other information that could be used in additional attacks.
+
+Bypass Protection Mechanism
+Scope: Confidentiality Out-of-bounds memory could contain memory addresses or other information that can be used to bypass ASLR and other protection mechanisms in order to improve the reliability of exploiting a separate weakness for code execution.
+
+DoS: Crash, Exit, or Restart
+Scope: Availability An attacker could cause a segmentation fault or crash by causing memory to be read outside of the bounds of the buffer. This is especially likely when the code reads a variable amount of data and assumes that a sentinel exists to stop the read operation, such as a NUL in a string.
+
+Varies by Context
+Scope: Other The read operation could produce other undefined or unexpected results.","Strategy: Input Validation Assume all input is malicious. Use an ""accept known good"" input validation strategy, i.e., use a list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does. When performing input validation, consider all potentially relevant properties, including length, type of input, the full range of acceptable values, missing or extra inputs, syntax, consistency across related fields, and conformance to business rules. As an example of business rule logic, ""boat"" may be syntactically valid because it only contains alphanumeric characters, but it is not valid if the input is only expected to contain colors such as ""red"" or ""blue."" Do not rely exclusively on looking for malicious or malformed inputs.  This is likely to miss at least one undesirable input, especially if the code's environment changes. This can give attackers enough room to bypass the intended validation. However, denylists can be useful for detecting potential attacks or determining which inputs are so malformed that they should be rejected outright. To reduce the likelihood of introducing an out-of-bounds read, ensure that you validate and ensure correct calculations for any length argument, buffer size calculation, or offset. Be especially careful of relying on a sentinel (i.e. special character such as NUL) in untrusted inputs.
+
+Strategy: Language Selection Use a language that provides appropriate memory abstractions.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,"OOB read
+                                    
+
+Shorthand for ""Out of bounds"" read"
+129,Improper Validation of Array Index,ALLOWED,Variant,"The product uses untrusted input when calculating or using an array index, but the product does not validate or incorrectly validates the index to ensure the index references a valid position within the array.","DoS: Crash, Exit, or Restart
+Scope: Integrity, Availability Use of an index that is outside the bounds of an array will very likely result in the corruption of relevant memory and perhaps instructions, leading to a crash, if the values are outside of the valid memory area.
+
+Modify Memory
+Scope: Integrity If the memory corrupted is data, rather than instructions, the system will continue to function with improper values.
+
+Modify Memory; Read Memory
+Scope: Confidentiality, Integrity Use of an index that is outside the bounds of an array can also trigger out-of-bounds read or write operations, or operations on the wrong objects; i.e., ""buffer overflows"" are not always the result. This may result in the exposure or modification of sensitive data.
+
+Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability If the memory accessible by the attacker can be effectively controlled, it may be possible to execute arbitrary code, as with a standard buffer overflow and possibly without the use of large inputs if a precise index can be controlled.
+
+DoS: Crash, Exit, or Restart; Execute Unauthorized Code or Commands; Read Memory; Modify Memory
+Scope: Integrity, Availability, Confidentiality A single fault could allow either an overflow ( CWE-788 ) or underflow ( CWE-786 ) of the array index. What happens next will depend on the type of operation being performed out of bounds, but can expose sensitive information, cause a system crash, or possibly lead to arbitrary code execution.","Strategy: Input Validation Use an input validation framework such as Struts or the OWASP ESAPI Validation API. Note that using a framework does not automatically address all input validation problems; be mindful of weaknesses that could arise from misusing the framework itself ( CWE-1173 ).
+
+For any security checks that are performed on the client side, ensure that these checks are duplicated on the server side, in order to avoid CWE-602 . Attackers can bypass the client-side checks by modifying values after the checks have been performed, or by changing the client to remove the client-side checks entirely. Then, these modified values would be submitted to the server. Even though client-side checks provide minimal benefits with respect to server-side security, they are still useful. First, they can support intrusion detection. If the server receives input that should have been rejected by the client, then it may be an indication of an attack. Second, client-side error-checking can provide helpful feedback to the user about the expectations for valid input. Third, there may be a reduction in server-side processing time for accidental input errors, although this is typically a small savings.
+
+Strategy: Language Selection Use a language that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid. For example, Ada allows the programmer to constrain the values of a variable and languages such as Java and Ruby will allow the programmer to handle exceptions when an out-of-bounds index is accessed.
+
+Strategy: Environment Hardening Run or compile the software using features or extensions that randomly arrange the positions of a program's executable and libraries in memory. Because this makes the addresses unpredictable, it can prevent an attacker from reliably jumping to exploitable code. Examples include Address Space Layout Randomization (ASLR) [ REF-58 ] [ REF-60 ] and Position-Independent Executables (PIE) [ REF-64 ]. Imported modules may be similarly realigned if their default memory addresses conflict with other modules, in a process known as ""rebasing"" (for Windows) and ""prelinking"" (for Linux) [ REF-1332 ] using randomly generated addresses. ASLR for libraries cannot be used in conjunction with prelink since it would require relocating the libraries at run-time, defeating the whole purpose of prelinking. For more information on these techniques see D3-SAOR (Segment Address Offset Randomization) from D3FEND [ REF-1335 ]. Effectiveness: Defense in Depth Note: These techniques do not provide a complete solution.  For instance, exploits frequently use a bug that discloses memory addresses in order to maximize reliability of code execution [ REF-1337 ]. It has also been shown that a side-channel attack can bypass ASLR [ REF-1333 ].
+
+Strategy: Environment Hardening Use a CPU and operating system that offers Data Execution Protection (using hardware NX or XD bits) or the equivalent techniques that simulate this feature in software, such as PaX [ REF-60 ] [ REF-61 ]. These techniques ensure that any instruction executed is exclusively at a memory address that is part of the code segment. For more information on these techniques see D3-PSEP (Process Segment Execution Prevention) from D3FEND [ REF-1336 ]. Effectiveness: Defense in Depth Note: This is not a complete solution, since buffer overflows could be used to overwrite nearby variables to modify the software's state in dangerous ways. In addition, it cannot be used in cases in which self-modifying code is required. Finally, an attack could still cause a denial of service, since the typical response is to exit the application.
+
+Strategy: Input Validation Assume all input is malicious. Use an ""accept known good"" input validation strategy, i.e., use a list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does. When performing input validation, consider all potentially relevant properties, including length, type of input, the full range of acceptable values, missing or extra inputs, syntax, consistency across related fields, and conformance to business rules. As an example of business rule logic, ""boat"" may be syntactically valid because it only contains alphanumeric characters, but it is not valid if the input is only expected to contain colors such as ""red"" or ""blue."" Do not rely exclusively on looking for malicious or malformed inputs.  This is likely to miss at least one undesirable input, especially if the code's environment changes. This can give attackers enough room to bypass the intended validation. However, denylists can be useful for detecting potential attacks or determining which inputs are so malformed that they should be rejected outright. When accessing a user-controlled array index, use a stringent range of values that are within the target array. Make sure that you do not allow negative values to be used. That is, verify the minimum as well as the maximum of the range of acceptable values.
+
+Be especially careful to validate all input when invoking code that crosses language boundaries, such as from an interpreted language to native code. This could create an unexpected interaction between the language boundaries. Ensure that you are not violating any of the expectations of the language with which you are interfacing. For example, even though Java may not be susceptible to buffer overflows, providing a large argument in a call to native code might trigger an overflow.
+
+Strategy: Environment Hardening Run your code using the lowest privileges that are required to accomplish the necessary tasks [ REF-76 ]. If possible, create isolated accounts with limited privileges that are only used for a single task. That way, a successful attack will not immediately give the attacker access to the rest of the software or its environment. For example, database applications rarely need to run as the database administrator, especially in day-to-day operations.
+
+Strategy: Sandbox or Jail Run the code in a ""jail"" or similar sandbox environment that enforces strict boundaries between the process and the operating system. This may effectively restrict which files can be accessed in a particular directory or which commands can be executed by the software. OS-level examples include the Unix chroot jail, AppArmor, and SELinux. In general, managed code may provide some protection. For example, java.io.FilePermission in the Java SecurityManager allows the software to specify restrictions on file operations. This may not be a feasible solution, and it only limits the impact to the operating system; the rest of the application may still be subject to compromise. Be careful to avoid CWE-243 and other weaknesses related to jails. Effectiveness: Limited Note: The effectiveness of this mitigation depends on the prevention capabilities of the specific sandbox or jail being used and might only help to reduce the scope of an attack, such as restricting the attacker to certain system calls or limiting the portion of the file system that can be accessed.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,"out-of-bounds array index
+                                    
+
+
+
+
+
+                                        index-out-of-range
+                                    
+
+
+
+
+
+                                        array index underflow"
+131,Incorrect Calculation of Buffer Size,ALLOWED,Base,"The product does not correctly calculate the size to be used when allocating a buffer, which could lead to a buffer overflow.","DoS: Crash, Exit, or Restart; Execute Unauthorized Code or Commands; Read Memory; Modify Memory
+Scope: Integrity, Availability, Confidentiality If the incorrect calculation is used in the context of memory allocation, then the software may create a buffer that is smaller or larger than expected. If the allocated buffer is smaller than expected, this could lead to an out-of-bounds read or write ( CWE-119 ), possibly causing a crash, allowing arbitrary code execution, or exposing sensitive data.","When allocating a buffer for the purpose of transforming, converting, or encoding an input, allocate enough memory to handle the largest possible encoding. For example, in a routine that converts ""&"" characters to ""&amp;"" for HTML entity encoding, the output buffer needs to be at least 5 times as large as the input buffer.
+
+Understand the programming language's underlying representation and how it interacts with numeric calculation ( CWE-681 ). Pay close attention to byte size discrepancies, precision, signed/unsigned distinctions, truncation, conversion and casting between types, ""not-a-number"" calculations, and how the language handles numbers that are too large or too small for its underlying representation. [ REF-7 ] Also be careful to account for 32-bit, 64-bit, and other potential differences that may affect the numeric representation.
+
+Strategy: Input Validation Perform input validation on any numeric input by ensuring that it is within the expected range. Enforce that the input meets both the minimum and maximum requirements for the expected range.
+
+For any security checks that are performed on the client side, ensure that these checks are duplicated on the server side, in order to avoid CWE-602 . Attackers can bypass the client-side checks by modifying values after the checks have been performed, or by changing the client to remove the client-side checks entirely. Then, these modified values would be submitted to the server.
+
+When processing structured incoming data containing a size field followed by raw data, identify and resolve any inconsistencies between the size field and the actual size of the data ( CWE-130 ).
+
+When allocating memory that uses sentinels to mark the end of a data structure - such as NUL bytes in strings - make sure you also include the sentinel in your calculation of the total amount of memory that must be allocated.
+
+Replace unbounded copy functions with analogous functions that support length arguments, such as strcpy with strncpy. Create these if they are not available. Effectiveness: Moderate Note: This approach is still susceptible to calculation errors, including issues such as off-by-one errors ( CWE-193 ) and incorrectly calculating buffer lengths ( CWE-131 ). Additionally, this only addresses potential overflow issues. Resource consumption / exhaustion issues are still possible.
+
+Use sizeof() on the appropriate data type to avoid CWE-467 .
+
+Use the appropriate type for the desired action. For example, in C/C++, only use unsigned types for values that could never be negative, such as height, width, or other numbers related to quantity. This will simplify validation and will reduce surprises related to unexpected casting.
+
+Strategy: Libraries or Frameworks Use a vetted library or framework that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid [ REF-1482 ]. Use libraries or frameworks that make it easier to handle numbers without unexpected consequences, or buffer allocation routines that automatically track buffer size. Examples include safe integer handling packages such as SafeInt (C++) or IntegerLib (C or C++). [ REF-106 ]
+
+Strategy: Environment Hardening Use automatic buffer overflow detection mechanisms that are offered by certain compilers or compiler extensions. Examples include: the Microsoft Visual Studio /GS flag, Fedora/Red Hat FORTIFY_SOURCE GCC flag, StackGuard, and ProPolice, which provide various mechanisms including canary-based detection and range/index checking. D3-SFCV (Stack Frame Canary Validation) from D3FEND [ REF-1334 ] discusses canary-based detection in detail. Effectiveness: Defense in Depth Note: This is not necessarily a complete solution, since these mechanisms only detect certain types of overflows. In addition, the result is still a denial of service, since the typical response is to exit the application.
+
+Strategy: Environment Hardening Run or compile the software using features or extensions that randomly arrange the positions of a program's executable and libraries in memory. Because this makes the addresses unpredictable, it can prevent an attacker from reliably jumping to exploitable code. Examples include Address Space Layout Randomization (ASLR) [ REF-58 ] [ REF-60 ] and Position-Independent Executables (PIE) [ REF-64 ]. Imported modules may be similarly realigned if their default memory addresses conflict with other modules, in a process known as ""rebasing"" (for Windows) and ""prelinking"" (for Linux) [ REF-1332 ] using randomly generated addresses. ASLR for libraries cannot be used in conjunction with prelink since it would require relocating the libraries at run-time, defeating the whole purpose of prelinking. For more information on these techniques see D3-SAOR (Segment Address Offset Randomization) from D3FEND [ REF-1335 ]. Effectiveness: Defense in Depth Note: These techniques do not provide a complete solution.  For instance, exploits frequently use a bug that discloses memory addresses in order to maximize reliability of code execution [ REF-1337 ]. It has also been shown that a side-channel attack can bypass ASLR [ REF-1333 ].
+
+Strategy: Environment Hardening Use a CPU and operating system that offers Data Execution Protection (using hardware NX or XD bits) or the equivalent techniques that simulate this feature in software, such as PaX [ REF-60 ] [ REF-61 ]. These techniques ensure that any instruction executed is exclusively at a memory address that is part of the code segment. For more information on these techniques see D3-PSEP (Process Segment Execution Prevention) from D3FEND [ REF-1336 ]. Effectiveness: Defense in Depth Note: This is not a complete solution, since buffer overflows could be used to overwrite nearby variables to modify the software's state in dangerous ways. In addition, it cannot be used in cases in which self-modifying code is required. Finally, an attack could still cause a denial of service, since the typical response is to exit the application.
+
+Strategy: Compilation or Build Hardening Examine compiler warnings closely and eliminate problems with potential security implications, such as signed / unsigned mismatch in memory operations, or use of uninitialized variables. Even if the weakness is rarely exploitable, a single failure may lead to the compromise of the entire system.
+
+Strategy: Environment Hardening Run your code using the lowest privileges that are required to accomplish the necessary tasks [ REF-76 ]. If possible, create isolated accounts with limited privileges that are only used for a single task. That way, a successful attack will not immediately give the attacker access to the rest of the software or its environment. For example, database applications rarely need to run as the database administrator, especially in day-to-day operations.
+
+Strategy: Sandbox or Jail Run the code in a ""jail"" or similar sandbox environment that enforces strict boundaries between the process and the operating system. This may effectively restrict which files can be accessed in a particular directory or which commands can be executed by the software. OS-level examples include the Unix chroot jail, AppArmor, and SELinux. In general, managed code may provide some protection. For example, java.io.FilePermission in the Java SecurityManager allows the software to specify restrictions on file operations. This may not be a feasible solution, and it only limits the impact to the operating system; the rest of the application may still be subject to compromise. Be careful to avoid CWE-243 and other weaknesses related to jails. Effectiveness: Limited Note: The effectiveness of this mitigation depends on the prevention capabilities of the specific sandbox or jail being used and might only help to reduce the scope of an attack, such as restricting the attacker to certain system calls or limiting the portion of the file system that can be accessed.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+134,Use of Externally-Controlled Format String,ALLOWED,Base,"The product uses a function that accepts a format string as an argument, but the format string originates from an external source.","Read Memory
+Scope: Confidentiality Format string problems allow for information disclosure which can severely simplify exploitation of the program.
+
+Modify Memory; Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability Format string problems can result in the execution of arbitrary code, buffer overflows, denial of service, or incorrect data representation.","Choose a language that is not subject to this flaw.
+
+Ensure that all format string functions are passed a static string which cannot be controlled by the user, and that the proper number of arguments are always sent to that function as well. If at all possible, use functions that do not support the %n operator in format strings. [ REF-116 ] [ REF-117 ]
+
+Run compilers and linkers with high warning levels, since they may detect incorrect usage.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+170,Improper Null Termination,ALLOWED,Base,"The product does not terminate or incorrectly terminates a string or array with a null character or equivalent terminator.
+
+Null termination errors frequently occur in two different ways. An off-by-one error could cause a null to be written out of bounds, leading to an overflow. Or, a program could use a strncpy() function call incorrectly, which prevents a null terminator from being added at all. Other scenarios are possible.","Read Memory; Execute Unauthorized Code or Commands
+Scope: Confidentiality, Integrity, Availability The case of an omitted null character is the most dangerous of the possible issues. This will almost certainly result in information disclosure, and possibly a buffer overflow condition, which may be exploited to execute arbitrary code.
+
+DoS: Crash, Exit, or Restart; Read Memory; DoS: Resource Consumption (CPU); DoS: Resource Consumption (Memory)
+Scope: Confidentiality, Integrity, Availability If a null character is omitted from a string, then most string-copying functions will read data until they locate a null character, even outside of the intended boundaries of the string. This could: cause a crash due to a segmentation fault cause sensitive adjacent memory to be copied and sent to an outsider trigger a buffer overflow when the copy is being written to a fixed-size buffer.
+
+Modify Memory; DoS: Crash, Exit, or Restart
+Scope: Integrity, Availability Misplaced null characters may result in any number of security problems. The biggest issue is a subset of buffer overflow, and write-what-where conditions, where data corruption occurs from the writing of a null character over valid data, or even instructions. A randomly placed null character may put the system into an undefined state, and therefore make it prone to crashing. A misplaced null character may corrupt other data in memory.
+
+Alter Execution Logic; Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability, Access Control, Other Should the null character corrupt the process flow, or affect a flag controlling access, it may lead to logical errors which allow for the execution of arbitrary code.","Use a language that is not susceptible to these issues. However, be careful of null byte interaction errors ( CWE-626 ) with lower-level constructs that may be written in a language that is susceptible.
+
+Ensure that all string functions used are understood fully as to how they append null characters. Also, be wary of off-by-one errors when appending nulls to the end of strings.
+
+If performance constraints permit, special code can be added that validates null-termination of string buffers, this is a rather naive and error-prone solution.
+
+Switch to bounded string manipulation functions. Inspect buffer lengths involved in the buffer overrun trace reported with the defect.
+
+Add code that fills buffers with nulls (however, the length of buffers still needs to be inspected, to ensure that the non null-terminated string is not written at the physical end of the buffer).",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+190,Integer Overflow or Wraparound,ALLOWED,Base,"The product performs a calculation that can
+         produce an integer overflow or wraparound when the logic
+         assumes that the resulting value will always be larger than
+         the original value. This occurs when an integer value is
+         incremented to a value that is too large to store in the
+         associated representation. When this occurs, the value may
+         become a very small or negative number.","DoS: Crash, Exit, or Restart; DoS: Resource Consumption (Memory); DoS: Instability
+Scope: Availability This weakness can generally lead to undefined behavior and therefore crashes. When the calculated result is used for resource allocation, this weakness can cause too many (or too few) resources to be allocated, possibly enabling crashes if the product requests more resources than can be provided.
+
+Modify Memory
+Scope: Integrity If the value in question is important to data (as opposed to flow), simple data corruption has occurred. Also, if the overflow/wraparound results in other conditions such as buffer overflows, further memory corruption may occur.
+
+Execute Unauthorized Code or Commands; Bypass Protection Mechanism
+Scope: Confidentiality, Availability, Access Control This weakness can sometimes trigger buffer overflows, which can be used to execute arbitrary code. This is usually outside the scope of the product's implicit security policy.
+
+Alter Execution Logic; DoS: Crash, Exit, or Restart; DoS: Resource Consumption (CPU)
+Scope: Availability, Other If the overflow/wraparound occurs in a loop index variable, this could cause the loop to terminate at the wrong time - too early, too late, or not at all (i.e., infinite loops). With too many iterations, some loops could consume too many resources such as memory, file handles, etc., possibly leading to a crash or other DoS.
+
+Bypass Protection Mechanism
+Scope: Access Control If integer values are used in security-critical decisions, such as calculating quotas or allocation limits, integer overflows can be used to cause an incorrect security decision.","Ensure that all protocols are strictly defined, such that all out-of-bounds behavior can be identified simply, and require strict conformance to the protocol.
+
+Strategy: Language Selection Use a language that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid. If possible, choose a language or compiler that performs automatic bounds checking.
+
+Strategy: Libraries or Frameworks Use a vetted library or framework that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid [ REF-1482 ]. Use libraries or frameworks that make it easier to handle numbers without unexpected consequences. Examples include safe integer handling packages such as SafeInt (C++) or IntegerLib (C or C++). [ REF-106 ]
+
+Strategy: Input Validation Perform input validation on any numeric input by ensuring that it is within the expected range. Enforce that the input meets both the minimum and maximum requirements for the expected range. Use unsigned integers where possible. This makes it easier to perform validation for integer overflows. When signed integers are required, ensure that the range check includes minimum values as well as maximum values.
+
+Understand the programming language's underlying representation and how it interacts with numeric calculation ( CWE-681 ). Pay close attention to byte size discrepancies, precision, signed/unsigned distinctions, truncation, conversion and casting between types, ""not-a-number"" calculations, and how the language handles numbers that are too large or too small for its underlying representation. [ REF-7 ] Also be careful to account for 32-bit, 64-bit, and other potential differences that may affect the numeric representation.
+
+For any security checks that are performed on the client side, ensure that these checks are duplicated on the server side, in order to avoid CWE-602 . Attackers can bypass the client-side checks by modifying values after the checks have been performed, or by changing the client to remove the client-side checks entirely. Then, these modified values would be submitted to the server.
+
+Strategy: Compilation or Build Hardening Examine compiler warnings closely and eliminate problems with potential security implications, such as signed / unsigned mismatch in memory operations, or use of uninitialized variables. Even if the weakness is rarely exploitable, a single failure may lead to the compromise of the entire system.","Be careful of terminology problems with ""overflow,"" ""underflow,"" and ""wraparound"" - see Terminology Notes. Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.","Overflow
+                                    
+
+The terms ""overflow"" and ""wraparound"" are
+               used interchangeably by some people, but they can have
+               more precise distinctions by others. See Terminology
+               Notes.
+
+
+
+
+                                        Wraparound
+                                    
+
+The terms ""overflow"" and ""wraparound"" are
+               used interchangeably by some people, but they can have
+               more precise distinctions by others. See Terminology
+               Notes.
+
+
+
+
+                                        wrap, wrap-around, wrap around
+                                    
+
+Alternate spellings of ""wraparound"""
+191,Integer Underflow (Wrap or Wraparound),ALLOWED,Base,"The product subtracts one value from another, such that the result is less than the minimum allowable integer value, which produces a value that is not equal to the correct result.
+
+This can happen in signed and unsigned cases.","DoS: Crash, Exit, or Restart; DoS: Resource Consumption (CPU); DoS: Resource Consumption (Memory); DoS: Instability
+Scope: Availability This weakness will generally lead to undefined behavior and therefore crashes. In the case of overflows involving loop index variables, the likelihood of infinite loops is also high.
+
+Modify Memory
+Scope: Integrity If the value in question is important to data (as opposed to flow), simple data corruption has occurred. Also, if the wrap around results in other conditions such as buffer overflows, further memory corruption may occur.
+
+Execute Unauthorized Code or Commands; Bypass Protection Mechanism
+Scope: Confidentiality, Availability, Access Control This weakness can sometimes trigger buffer overflows which can be used to execute arbitrary code. This is usually outside the scope of a program's implicit security policy.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,"Integer underflow
+                                    
+
+
+""Integer underflow"" is sometimes used to identify signedness errors in which an originally positive number becomes negative as a result of subtraction. However, there are cases of bad subtraction in which unsigned integers are involved, so it's not always a signedness issue.
+""Integer underflow"" is occasionally used to describe array index errors in which the index is negative."
+192,Integer Coercion Error,ALLOWED,Variant,"Integer coercion refers to a set of flaws pertaining to the type casting, extension, or truncation of primitive data types.
+
+Several flaws fall under the category of integer coercion errors. For the most part, these errors in and of themselves result only in availability and data integrity issues. However, in some circumstances, they may result in other, more complicated security related flaws, such as buffer overflow conditions.","DoS: Resource Consumption (CPU); DoS: Resource Consumption (Memory); DoS: Crash, Exit, or Restart
+Scope: Availability Integer coercion often leads to undefined states of execution resulting in infinite loops or crashes.
+
+Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability In some cases, integer coercion errors can lead to exploitable buffer overflow conditions, resulting in the execution of arbitrary code.
+
+Other
+Scope: Integrity, Other Integer coercion errors result in an incorrect value being stored for the variable in question.","A language which throws exceptions on ambiguous data casts might be chosen.
+
+Design objects and program flow such that multiple or complex casts are unnecessary
+
+Ensure that any data type casting that you must used is entirely understood in order to reduce the plausibility of error in use.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+194,Unexpected Sign Extension,ALLOWED,Variant,"The product performs an operation on a number that causes it to be sign extended when it is transformed into a larger data type. When the original number is negative, this can produce unexpected values that lead to resultant weaknesses.","Read Memory; Modify Memory; Other
+Scope: Integrity, Confidentiality, Availability, Other When an unexpected sign extension occurs in code that operates directly on memory buffers, such as a size value or a memory index, then it could cause the program to write or read outside the boundaries of the intended buffer. If the numeric value is associated with an application-level resource, such as a quantity or price for a product in an e-commerce site, then the sign extension could produce a value that is much higher (or lower) than the application's allowable range.","Avoid using signed variables if you don't need to represent negative values. When negative values are needed, perform validation after you save those values to larger data types, or before passing them to functions that are expecting unsigned values.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+195,Signed to Unsigned Conversion Error,ALLOWED,Variant,"The product uses a signed primitive and performs a cast to an unsigned primitive, which can produce an unexpected value if the value of the signed primitive can not be represented using an unsigned primitive.
+
+It is dangerous to rely on implicit casts between signed and unsigned numbers because the result can take on an unexpected value and violate assumptions made by the program.
+Often, functions will return negative values to indicate a failure. When the result of a function is to be used as a size parameter, using these negative return values can have unexpected results. For example, if negative size values are passed to the standard memory copy or allocation functions they will be implicitly cast to a large unsigned value. This may lead to an exploitable buffer overflow or underflow condition.","Unexpected State
+Scope: Integrity Conversion between signed and unsigned values can lead to a variety of errors, but from a security standpoint is most commonly associated with integer overflow and buffer overflow vulnerabilities.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+197,Numeric Truncation Error,ALLOWED,Base,"Truncation errors occur when a primitive is cast to a primitive of a smaller size and data is lost in the conversion.
+
+When a primitive is cast to a smaller primitive, the high order bits of the large value are lost in the conversion, potentially resulting in an unexpected value that is not equal to the original value. This value may be required as an index into a buffer, a loop iterator, or simply necessary state data. In any case, the value cannot be trusted and the system will be in an undefined state. While this method may be employed viably to isolate the low bits of a value, this usage is rare, and truncation usually implies that an implementation error has occurred.","Modify Memory
+Scope: Integrity The true value of the data is lost and corrupted data is used.","Ensure that no casts, implicit or explicit, take place that move from a larger size primitive or a smaller size primitive.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+241,Improper Handling of Unexpected Data Type,ALLOWED,Base,"The product does not handle or incorrectly handles when a particular element is not the expected type, e.g. it expects a digit (0-9) but is provided with a letter (A-Z).","Varies by Context; Unexpected State
+Scope: Integrity, Other","Strategy: Input Validation Assume all input is malicious. Use an ""accept known good"" input validation strategy, i.e., use a list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does. When performing input validation, consider all potentially relevant properties, including length, type of input, the full range of acceptable values, missing or extra inputs, syntax, consistency across related fields, and conformance to business rules. As an example of business rule logic, ""boat"" may be syntactically valid because it only contains alphanumeric characters, but it is not valid if the input is only expected to contain colors such as ""red"" or ""blue."" Do not rely exclusively on looking for malicious or malformed inputs.  This is likely to miss at least one undesirable input, especially if the code's environment changes. This can give attackers enough room to bypass the intended validation. However, denylists can be useful for detecting potential attacks or determining which inputs are so malformed that they should be rejected outright.
+
+Strategy: Input Validation Inputs should be decoded and canonicalized to the application's current internal representation before being validated ( CWE-180 ). Make sure that the application does not decode the same input twice ( CWE-174 ). Such errors could be used to bypass allowlist validation schemes by introducing dangerous inputs after they have been checked.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+242,Use of Inherently Dangerous Function,ALLOWED,Base,"The product calls a function that can never be guaranteed to work safely.
+
+Certain functions behave in dangerous ways regardless of how they are used. Functions in this category were often implemented without taking security concerns into account. The gets() function is unsafe because it does not perform bounds checking on the size of its input. An attacker can easily send arbitrarily-sized input to gets() and overflow the destination buffer. Similarly, the >> operator is unsafe to use when reading into a statically-allocated character array because it does not perform bounds checking on the size of its input. An attacker can easily send arbitrarily-sized input to the >> operator and overflow the destination buffer.","Varies by Context
+Scope: Other","Ban the use of dangerous functions. Use their safe equivalent.
+
+Use grep or static analysis tools to spot usage of dangerous functions.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+252,Unchecked Return Value,ALLOWED,Base,"The product does not check the return value from a method or function, which can prevent it from detecting unexpected states and conditions.
+
+Two common programmer assumptions are ""this function call can never fail"" and ""it doesn't matter if this function call fails"". If an attacker can force the function to fail or otherwise return a value that is not expected, then the subsequent program logic could lead to a vulnerability, because the product is not in a state that the programmer assumes. For example, if the program calls a function to drop privileges but does not check the return code to ensure that privileges were successfully dropped, then the program will continue to operate with the higher privileges.","Unexpected State; DoS: Crash, Exit, or Restart
+Scope: Availability, Integrity An unexpected return value could place the system in a state that could lead to a crash or other unintended behaviors.","Check the results of all functions that return a value and verify that the value is expected. Effectiveness: High Note: Checking the return value of the function will typically be sufficient, however beware of race conditions ( CWE-362 ) in a concurrent environment.
+
+For any pointers that could have been modified or provided from a function that can return NULL, check the pointer for NULL before use. When working with a multithreaded or otherwise asynchronous environment, ensure that proper locking APIs are used to lock before the check, and unlock when it has finished [ REF-1484 ].
+
+Ensure that you account for all possible return values from the function.
+
+When designing a function, make sure you return a value or throw an exception in case of an error.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+253,Incorrect Check of Function Return Value,ALLOWED,Base,"The product incorrectly checks a return value from a function, which prevents it from detecting errors or exceptional conditions.
+
+Important and common functions will return some value about the success of its actions. This will alert the program whether or not to handle any errors caused by that function.","Unexpected State; DoS: Crash, Exit, or Restart
+Scope: Availability, Integrity An unexpected return value could place the system in a state that could lead to a crash or other unintended behaviors.","Strategy: Language Selection Use a language or compiler that uses exceptions and requires the catching of those exceptions.
+
+Properly check all functions which return a value.
+
+When designing any function make sure you return a value or throw an exception in case of an error.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+273,Improper Check for Dropped Privileges,ALLOWED,Base,"The product attempts to drop privileges but does not check or incorrectly checks to see if the drop succeeded.
+
+If the drop fails, the product will continue to run with the raised privileges, which might provide additional access to unprivileged users.","Gain Privileges or Assume Identity
+Scope: Access Control If privileges are not dropped, neither are access rights of the user. Often these rights can be prevented from being dropped.
+
+Gain Privileges or Assume Identity; Hide Activities
+Scope: Access Control, Non-Repudiation If privileges are not dropped, in some cases the system may record actions as the user which is being impersonated rather than the impersonator.","Strategy: Separation of Privilege Compartmentalize the system to have ""safe"" areas where trust boundaries can be unambiguously drawn. Do not allow sensitive data to go outside of the trust boundary and always be careful when interfacing with a compartment outside of the safe area. Ensure that appropriate compartmentalization is built into the system design, and the compartmentalization allows for and reinforces privilege separation functionality. Architects and designers should rely on the principle of least privilege to decide the appropriate time to use privileges and the time to drop privileges.
+
+Check the results of all functions that return a value and verify that the value is expected. Effectiveness: High Note: Checking the return value of the function will typically be sufficient, however beware of race conditions ( CWE-362 ) in a concurrent environment.
+
+In Windows, make sure that the process token has the SeImpersonatePrivilege(Microsoft Server 2003). Code that relies on impersonation for security must ensure that the impersonation succeeded, i.e., that a proper privilege demotion happened.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+327,Use of a Broken or Risky Cryptographic Algorithm,ALLOWED,Class,"The product uses a broken or risky cryptographic algorithm or protocol.
+
+Cryptographic algorithms are the methods by which data is scrambled to prevent observation or influence by unauthorized actors. Insecure cryptography can be exploited to expose sensitive information, modify data in unexpected ways, spoof identities of other users or devices, or other impacts.
+It is very difficult to produce a secure algorithm, and even high-profile algorithms by accomplished cryptographic experts have been broken. Well-known techniques exist to break or weaken various kinds of cryptography. Accordingly, there are a small number of well-understood and heavily studied algorithms that should be used by most products. Using a non-standard or known-insecure algorithm is dangerous because a determined adversary may be able to break the algorithm and compromise whatever data has been protected.
+Since the state of cryptography advances so rapidly, it is common for an algorithm to be considered ""unsafe"" even if it was once thought to be strong. This can happen when new attacks are discovered, or if computing power increases so much that the cryptographic algorithm no longer provides the amount of protection that was originally thought.
+For a number of reasons, this weakness is even more challenging to manage with hardware deployment of cryptographic algorithms as opposed to software implementation. First, if a flaw is discovered with hardware-implemented cryptography, the flaw cannot be fixed in most cases without a recall of the product, because hardware is not easily replaceable like software. Second, because the hardware product is expected to work for years, the adversary's computing power will only increase over time.","Read Application Data
+Scope: Confidentiality The confidentiality of sensitive data may be compromised by the use of a broken or risky cryptographic algorithm.
+
+Modify Application Data
+Scope: Integrity The integrity of sensitive data may be compromised by the use of a broken or risky cryptographic algorithm.
+
+Hide Activities
+Scope: Accountability, Non-Repudiation If the cryptographic algorithm is used to ensure the identity of the source of the data (such as digital signatures), then a broken algorithm will compromise this scheme and the source of the data cannot be proven.","Strategy: Libraries or Frameworks When there is a need to store or transmit sensitive data, use strong, up-to-date cryptographic algorithms to encrypt that data. Select a well-vetted algorithm that is currently considered to be strong by experts in the field, and use well-tested implementations. As with all cryptographic mechanisms, the source code should be available for analysis. For example, US government systems require FIPS 140-2 certification [ REF-1192 ]. Do not develop custom or private cryptographic algorithms. They will likely be exposed to attacks that are well-understood by cryptographers. Reverse engineering techniques are mature. If the algorithm can be compromised if attackers find out how it works, then it is especially weak. Periodically ensure that the cryptography has not become obsolete. Some older algorithms, once thought to require a billion years of computing time, can now be broken in days or hours. This includes MD4, MD5, SHA1, DES, and other algorithms that were once regarded as strong. [ REF-267 ]
+
+Ensure that the design allows one cryptographic algorithm to be replaced with another in the next generation or version. Where possible, use wrappers to make the interfaces uniform. This will make it easier to upgrade to stronger algorithms. With hardware, design the product at the Intellectual Property (IP) level so that one cryptographic algorithm can be replaced with another in the next generation of the hardware product. Effectiveness: Defense in Depth
+
+Carefully manage and protect cryptographic keys (see CWE-320 ). If the keys can be guessed or stolen, then the strength of the cryptography itself is irrelevant.
+
+Strategy: Libraries or Frameworks Use a vetted library or framework that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid [ REF-1482 ]. Industry-standard implementations will save development time and may be more likely to avoid errors that can occur during implementation of cryptographic algorithms. Consider the ESAPI Encryption feature.
+
+When using industry-approved techniques, use them correctly. Don't cut corners by skipping resource-intensive steps ( CWE-325 ). These steps are often essential for preventing common attacks.",Examine children of this entry to see if there is a better fit,N/A
+330,Use of Insufficiently Random Values,DISCOURAGED,Class,The product uses insufficiently random numbers or values in a security context that depends on unpredictable numbers.,"Other
+Scope: Confidentiality, Other When a protection mechanism relies on random values to restrict access to a sensitive resource, such as a session ID or a seed for generating a cryptographic key, then the resource being protected could be accessed by guessing the ID or key.
+
+Bypass Protection Mechanism; Other
+Scope: Access Control, Other If product relies on unique, unguessable IDs to identify a resource, an attacker might be able to guess an ID for a resource that is owned by another user. The attacker could then read the resource, or pre-create a resource with the same ID to prevent the legitimate program from properly sending the resource to the intended user. For example, a product might maintain session information in a file whose name is based on a username. An attacker could pre-create this file for a victim user, then set the permissions so that the application cannot generate the session for the victim, preventing the victim from using the application.
+
+Bypass Protection Mechanism; Gain Privileges or Assume Identity
+Scope: Access Control When an authorization or authentication mechanism relies on random values to restrict access to restricted functionality, such as a session ID or a seed for generating a cryptographic key, then an attacker may access the restricted functionality by guessing the ID or key.","Use a well-vetted algorithm that is currently considered to be strong by experts in the field, and select well-tested implementations with adequate length seeds. In general, if a pseudo-random number generator is not advertised as being cryptographically secure, then it is probably a statistical PRNG and should not be used in security-sensitive contexts. Pseudo-random number generators can produce predictable numbers if the generator is known and the seed can be guessed. A 256-bit seed is a good starting point for producing a ""random enough"" number.
+
+Consider a PRNG that re-seeds itself as needed from high quality pseudo-random output sources, such as hardware devices.
+
+Use automated static analysis tools that target this type of weakness. Many modern techniques use data flow analysis to minimize the number of false positives. This is not a perfect solution, since 100% accuracy and coverage are not feasible.
+
+Strategy: Libraries or Frameworks Use products or modules that conform to FIPS 140-2 [ REF-267 ] to avoid obvious entropy problems. Consult FIPS 140-2 Annex C (""Approved Random Number Generators"").
+
+Use tools and techniques that require manual (human) analysis, such as penetration testing, threat modeling, and interactive tools that allow the tester to record and modify an active session. These may be more effective than strictly automated techniques. This is especially the case with weaknesses that are related to design and business rules.",Examine children of this entry to see if there is a better fit,N/A
+331,Insufficient Entropy,ALLOWED,Base,"The product uses an algorithm or scheme that produces insufficient entropy, leaving patterns or clusters of values that are more likely to occur than others.","Bypass Protection Mechanism; Other
+Scope: Access Control, Other An attacker could guess the random numbers generated and could gain unauthorized access to a system if the random numbers are used for authentication and authorization.",Determine the necessary entropy to adequately provide for randomness and predictability. This can be achieved by increasing the number of bits of objects such as keys and seeds.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+338,Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG),ALLOWED,Base,"The product uses a Pseudo-Random Number Generator (PRNG) in a security context, but the PRNG's algorithm is not cryptographically strong.
+
+When a non-cryptographic PRNG is used in a cryptographic context, it can expose the cryptography to certain types of attacks.
+Often a pseudo-random number generator (PRNG) is not designed for cryptography. Sometimes a mediocre source of randomness is sufficient or preferable for algorithms that use random numbers. Weak generators generally take less processing power and/or do not use the precious, finite, entropy sources on a system. While such PRNGs might have very useful features, these same features could be used to break the cryptography.","Bypass Protection Mechanism
+Scope: Access Control If a PRNG is used for authentication and authorization, such as a session ID or a seed for generating a cryptographic key, then an attacker may be able to easily guess the ID or cryptographic key and gain access to restricted functionality.","Use functions or hardware which use a hardware-based random number generation for all crypto. This is the recommended solution. Use CyptGenRandom on Windows, or hw_rand() on Linux.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+363,Race Condition Enabling Link Following,ALLOWED,Base,"The product checks the status of a file or directory before accessing it, which produces a race condition in which the file can be replaced with a link before the access is performed, causing the product to access the wrong file.
+
+While developers might expect that there is a very narrow time window between the time of check and time of use, there is still a race condition. An attacker could cause the product to slow down (e.g. with memory consumption), causing the time window to become larger. Alternately, in some situations, the attacker could win the race by performing a large number of attacks.","Read Files or Directories; Modify Files or Directories
+Scope: Confidentiality, Integrity",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+366,Race Condition within a Thread,ALLOWED,Base,"If two threads of execution use a resource simultaneously, there exists the possibility that resources may be used while invalid, in turn making the state of execution undefined.","Alter Execution Logic; Unexpected State
+Scope: Integrity, Other The main problem is that -- if a lock is overcome -- data could be altered in a bad state.","Use locking functionality. This is the recommended solution. Implement some form of locking mechanism around code which alters or reads persistent data in a multithreaded environment.
+
+Create resource-locking validation checks. If no inherent locking mechanisms exist, use flags and signals to enforce your own blocking scheme when resources are being used by other threads of execution.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+369,Divide By Zero,ALLOWED,Base,"The product divides a value by zero.
+
+This weakness typically occurs when an unexpected value is provided to the product, or if an error occurs that is not properly detected. It frequently occurs in calculations involving physical dimensions such as size, length, width, and height.","DoS: Crash, Exit, or Restart
+Scope: Availability A Divide by Zero results in a crash.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+377,Insecure Temporary File,ALLOWED,Class,Creating and using insecure temporary files can leave application and system data vulnerable to attack.,"Read Files or Directories; Modify Files or Directories
+Scope: Confidentiality, Integrity",N/A,Examine children of this entry to see if there is a better fit,N/A
+391,Unchecked Error Condition,PROHIBITED,Base,"[PLANNED FOR DEPRECATION. SEE MAINTENANCE NOTES AND CONSIDER CWE-252, CWE-248, OR CWE-1069.] Ignoring exceptions and other error conditions may allow an attacker to induce unexpected behavior unnoticed.","Varies by Context; Unexpected State; Alter Execution Logic
+Scope: Integrity, Other","The choice between a language which has named or unnamed exceptions needs to be done. While unnamed exceptions exacerbate the chance of not properly dealing with an exception, named exceptions suffer from the up call version of the weak base class problem.
+
+A language can be used which requires, at compile time, to catch all serious exceptions. However, one must make sure to use the most current version of the API as new exceptions could be added.
+
+Catch all relevant exceptions. This is the recommended solution. Ensure that all exceptions are handled in such a way that you can be sure of the state of your system at any given moment.","Consider CWE-252 , CWE-1069 , CWE-248 , or other entries under CWE-754 : Improper Check for Unusual or Exceptional Conditions or CWE-755 : Improper Handling of Exceptional Conditions.",N/A
+401,Missing Release of Memory after Effective Lifetime,ALLOWED,Variant,"The product does not sufficiently track and release allocated memory after it has been used, making the memory unavailable for reallocation and reuse.","DoS: Crash, Exit, or Restart; DoS: Instability; DoS: Resource Consumption (CPU); DoS: Resource Consumption (Memory)
+Scope: Availability Most memory leaks result in general product reliability problems, but if an attacker can intentionally trigger a memory leak, the attacker might be able to launch a denial of service attack (by crashing or hanging the program) or take advantage of other unexpected program behavior resulting from a low memory condition.
+
+Reduce Performance
+Scope: Other","Strategy: Libraries or Frameworks Choose a language or tool that provides automatic memory management, or makes manual memory management less error-prone. For example, glibc in Linux provides protection against free of invalid pointers. When using Xcode to target OS X or iOS, enable automatic reference counting (ARC) [ REF-391 ]. To help correctly and consistently manage memory when programming in C++, consider using a smart pointer class such as std::auto_ptr (defined by ISO/IEC ISO/IEC 14882:2003), std::shared_ptr and std::unique_ptr (specified by an upcoming revision of the C++ standard, informally referred to as C++ 1x), or equivalent solutions such as Boost.
+
+Use an abstraction library to abstract away risky APIs. Not a complete solution.
+
+The Boehm-Demers-Weiser Garbage Collector or valgrind can be used to detect leaks in code. Note: This is not a complete solution as it is not 100% effective.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,Memory Leak
+404,Improper Resource Shutdown or Release,ALLOWED,Class,"The product does not release or incorrectly releases a resource before it is made available for re-use.
+
+When a resource is created or allocated, the developer is responsible for properly releasing the resource as well as accounting for all potential paths of expiration or invalidation, such as a set period of time or revocation.","DoS: Resource Consumption (Other); Varies by Context
+Scope: Availability, Other Most unreleased resource issues result in general software reliability problems, but if an attacker can intentionally trigger a resource leak, the attacker might be able to launch a denial of service attack by depleting the resource pool.
+
+Read Application Data
+Scope: Confidentiality When a resource containing sensitive information is not correctly shutdown, it may expose the sensitive data in a subsequent allocation.","Strategy: Language Selection Use a language that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid. For example, languages such as Java, Ruby, and Lisp perform automatic garbage collection that releases memory for objects that have been deallocated.
+
+It is good practice to be responsible for freeing all resources you allocate and to be consistent with how and where you free memory in a function. If you allocate memory that you intend to free upon completion of the function, you must be sure to free the memory at all exit points for that function including error conditions.
+
+Memory should be allocated/freed using matching functions such as malloc/free, new/delete, and new[]/delete[].
+
+When releasing a complex object or structure, ensure that you properly dispose of all of its member components, not just the object itself.",Examine children of this entry to see if there is a better fit,N/A
+415,Double Free,ALLOWED,Variant,The product calls free() twice on the same memory address.,"Modify Memory; Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability When a program calls free() twice with the same argument, the program's memory management data structures may become corrupted, potentially leading to the reading or modification of unexpected memory addresses. This corruption can cause the program to crash or, in some circumstances, cause two later calls to malloc() to return the same pointer. If malloc() returns the same value twice and the program later gives the attacker control over the data that is written into this doubly-allocated memory, the program becomes vulnerable to a buffer overflow attack. Doubly freeing memory may result in a write-what-where condition, allowing an attacker to execute arbitrary code.","Choose a language that provides automatic memory management.
+
+Ensure that each allocation is freed only once. After freeing a chunk, set the pointer to NULL to ensure the pointer cannot be freed again. In complicated error conditions, be sure that clean-up routines respect the state of allocation properly. If the language is object oriented, ensure that object destructors delete each chunk of memory only once.
+
+Use a static analysis tool to find double free instances.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,Double-free
+416,Use After Free,ALLOWED,Variant,"The product reuses or references memory after it has been freed. At some point afterward, the memory may be allocated again and saved in another pointer, while the original pointer references a location somewhere within the new allocation. Any operations using the original pointer are no longer valid because the memory ""belongs"" to the code that operates on the new pointer.","Modify Memory
+Scope: Integrity The use of previously freed memory may corrupt valid data, if the memory area in question has been allocated and used properly elsewhere.
+
+DoS: Crash, Exit, or Restart
+Scope: Availability If chunk consolidation occurs after the use of previously freed data, the process may crash when invalid data is used as chunk information.
+
+Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability If malicious data is entered before chunk consolidation can take place, it may be possible to take advantage of a write-what-where primitive to execute arbitrary code. If the newly allocated data happens to hold a class, in C++ for example, various function pointers may be scattered within the heap data. If one of these function pointers is overwritten with an address to valid shellcode, execution of arbitrary code can be achieved.","Strategy: Language Selection Choose a language that provides automatic memory management.
+
+Strategy: Attack Surface Reduction When freeing pointers, be sure to set them to NULL once they are freed. However, the utilization of multiple or complex data structures may lower the usefulness of this strategy. Effectiveness: Defense in Depth Note: If a bug causes an attempted access of this pointer, then a NULL dereference could still lead to a crash or other unexpected behavior, but it will reduce or eliminate the risk of code execution.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,"Dangling pointer
+                                    
+
+a pointer that no longer points to valid memory, often after it has been freed
+
+
+
+
+                                        UAF
+                                    
+
+commonly used acronym for Use After Free
+
+
+
+
+                                        Use-After-Free"
+456,Missing Initialization of a Variable,ALLOWED,Variant,"The product does not initialize critical variables, which causes the execution environment to use unexpected values.","Unexpected State; Quality Degradation; Varies by Context
+Scope: Integrity, Other The uninitialized data may be invalid, causing logic errors within the program. In some cases, this could result in a security problem.","Strategy: Attack Surface Reduction Ensure that critical variables are initialized before first use [ REF-1485 ].
+
+Strategy: Language Selection Choose a language that is not susceptible to these issues.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+459,Incomplete Cleanup,ALLOWED,Base,"The product does not properly ""clean up"" and remove temporary or supporting resources after they have been used.","Other; Read Application Data; Modify Application Data; DoS: Resource Consumption (Other)
+Scope: Other, Confidentiality, Integrity It is possible to overflow the number of temporary files because directories typically have limits on the number of files allowed. This could create a denial of service problem.",Temporary files and other supporting resources should be deleted/released immediately after they are no longer needed.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,Insufficient Cleanup
+467,Use of sizeof() on a Pointer Type,ALLOWED,Variant,"The code calls sizeof() on a pointer type, which can be an incorrect calculation if the programmer intended to determine the size of the data that is being pointed to.
+
+The use of sizeof() on a pointer can sometimes generate useful information. An obvious case is to find out the wordsize on a platform. More often than not, the appearance of sizeof(pointer) indicates a bug.","Modify Memory; Read Memory
+Scope: Integrity, Confidentiality This error can often cause one to allocate a buffer that is much smaller than what is needed, leading to resultant weaknesses such as buffer overflows.","Use expressions such as ""sizeof(*pointer)"" instead of ""sizeof(pointer)"", unless you intend to run sizeof() on a pointer type to gain some platform independence or if you are allocating a variable on the stack.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+468,Incorrect Pointer Scaling,ALLOWED,Base,"In C and C++, one may often accidentally refer to the wrong memory due to the semantics of when math operations are implicitly scaled.","Read Memory; Modify Memory
+Scope: Confidentiality, Integrity Incorrect pointer scaling will often result in buffer overflow conditions. Confidentiality can be compromised if the weakness is in the context of a buffer over-read or under-read.","Use a platform with high-level memory abstractions.
+
+Always use array indexing instead of direct pointer manipulation.
+
+Use technologies for preventing buffer overflows.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+469,Use of Pointer Subtraction to Determine Size,ALLOWED,Base,"The product subtracts one pointer from another in order to determine size, but this calculation can be incorrect if the pointers do not exist in the same memory chunk.","Modify Memory; Read Memory; Execute Unauthorized Code or Commands; Gain Privileges or Assume Identity
+Scope: Access Control, Integrity, Confidentiality, Availability There is the potential for arbitrary code execution with privileges of the vulnerable program.","Save an index variable. This is the recommended solution. Rather than subtract pointers from one another, use an index variable of the same size as the pointers in question. Use this variable to ""walk"" from one pointer to the other and calculate the difference. Always validate this number.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+476,NULL Pointer Dereference,ALLOWED,Base,The product dereferences a pointer that it expects to be valid but is NULL.,"DoS: Crash, Exit, or Restart
+Scope: Availability NULL pointer dereferences usually result in the failure of the process unless exception handling (on some platforms) is available and implemented. Even when exception handling is being used, it can still be very difficult to return the software to a safe state of operation.
+
+Execute Unauthorized Code or Commands; Read Memory; Modify Memory
+Scope: Integrity, Confidentiality In rare circumstances, when NULL is equivalent to the 0x0 memory address and privileged code can access it, then writing or reading memory is possible, which may lead to code execution.","For any pointers that could have been modified or provided from a function that can return NULL, check the pointer for NULL before use. When working with a multithreaded or otherwise asynchronous environment, ensure that proper locking APIs are used to lock before the check, and unlock when it has finished [ REF-1484 ].
+
+Select a programming language that is not susceptible to these issues.
+
+Check the results of all functions that return a value and verify that the value is non-null before acting upon it. Effectiveness: Moderate Note: Checking the return value of the function will typically be sufficient, however beware of race conditions ( CWE-362 ) in a concurrent environment. This solution does not handle the use of improperly initialized variables ( CWE-665 ).
+
+Identify all variables and data stores that receive information from external sources, and apply input validation to make sure that they are only initialized to expected values.
+
+Explicitly initialize all variables and other data stores, either during declaration or just before the first usage.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,"NPD
+                                    
+
+Common abbreviation for Null Pointer Dereference
+
+
+
+
+                                        null deref
+                                    
+
+Common abbreviation for Null Pointer Dereference
+
+
+
+
+                                        NPE
+                                    
+
+Common abbreviation for Null Pointer Exception
+
+
+
+
+                                        nil pointer dereference
+                                    
+
+used for access of nil in Go programs"
+479,Signal Handler Use of a Non-reentrant Function,ALLOWED,Variant,"The product defines a signal handler that calls a non-reentrant function.
+
+Non-reentrant functions are functions that cannot safely be called, interrupted, and then recalled before the first call has finished without resulting in memory corruption. This can lead to an unexpected system state and unpredictable results with a variety of potential consequences depending on context, including denial of service and code execution.
+Many functions are not reentrant, but some of them can result in the corruption of memory if they are used in a signal handler. The function call syslog() is an example of this. In order to perform its functionality, it allocates a small amount of memory as ""scratch space."" If syslog() is suspended by a signal call and the signal handler calls syslog(), the memory used by both of these functions enters an undefined, and possibly, exploitable state. Implementations of malloc() and free() manage metadata in global structures in order to track which memory is allocated versus which memory is available, but they are non-reentrant. Simultaneous calls to these functions can cause corruption of the metadata.","Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability It may be possible to execute arbitrary code through the use of a write-what-where condition.
+
+Modify Memory; Modify Application Data
+Scope: Integrity Signal race conditions often result in data corruption.","Require languages or libraries that provide reentrant functionality, or otherwise make it easier to avoid this weakness.
+
+Design signal handlers to only set flags rather than perform complex functionality.
+
+Ensure that non-reentrant functions are not found in signal handlers.
+
+Use sanity checks to reduce the timing window for exploitation of race conditions. This is only a partial solution, since many attacks might fail, but other attacks still might work within the narrower window, even accidentally. Effectiveness: Defense in Depth",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+480,Use of Incorrect Operator,ALLOWED,Base,"The product accidentally uses the wrong operator, which changes the logic in security-relevant ways.
+
+These types of errors are generally the result of a typo by the programmer.","Alter Execution Logic
+Scope: Other This weakness can cause unintended logic to be executed and other unexpected application behavior.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+481,Assigning instead of Comparing,ALLOWED,Variant,"The code uses an operator for assignment when the intention was to perform a comparison.
+
+In many languages the compare statement is very close in appearance to the assignment statement and are often confused. This bug is generally the result of a typo and usually causes obvious problems with program execution. If the comparison is in an if statement, the if statement will usually evaluate the value of the right-hand side of the predicate.","Alter Execution Logic
+Scope: Other","Many IDEs and static analysis products will detect this problem.
+
+Place constants on the left. If one attempts to assign a constant with a variable, the compiler will produce an error.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+562,Return of Stack Variable Address,ALLOWED,Base,"A function returns the address of a stack variable, which will cause unintended program behavior, typically in the form of a crash.
+
+Because local variables are allocated on the stack, when a program returns a pointer to a local variable, it is returning a stack address. A subsequent function call is likely to re-use this same stack address, thereby overwriting the value of the pointer, which no longer corresponds to the same variable since a function's stack frame is invalidated when it returns. At best this will cause the value of the pointer to change unexpectedly. In many cases it causes the program to crash the next time the pointer is dereferenced.","Read Memory; Modify Memory; Execute Unauthorized Code or Commands; DoS: Crash, Exit, or Restart
+Scope: Availability, Integrity, Confidentiality If the returned stack buffer address is dereferenced after the return, then an attacker may be able to modify or read memory, depending on how the address is used.  If the address is used for reading, then the address itself may be exposed, or the contents that the address points to.  If the address is used for writing, this can lead to a crash and possibly code execution.",Use static analysis tools to spot return of the address of a stack variable.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+587,Assignment of a Fixed Address to a Pointer,ALLOWED,Variant,"The product sets a pointer to a specific address other than NULL or 0.
+
+Using a fixed address is not portable, because that address will probably not be valid in all environments or platforms.","Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability If one executes code at a known location, an attacker might be able to inject code there beforehand.
+
+DoS: Crash, Exit, or Restart; Reduce Maintainability; Reduce Reliability
+Scope: Availability If the code is ported to another platform or environment, the pointer is likely to be invalid and cause a crash.
+
+Read Memory; Modify Memory
+Scope: Confidentiality, Integrity The data at a known pointer location can be easily read or influenced by an attacker.",Never set a pointer to a fixed address.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+590,Free of Memory not on the Heap,ALLOWED,Variant,"The product calls free() on a pointer to memory that was not allocated using associated heap allocation functions such as malloc(), calloc(), or realloc().
+
+When free() is called on an invalid pointer, the program's memory management data structures may become corrupted. This corruption can cause the program to crash or, in some circumstances, an attacker may be able to cause free() to operate on controllable memory locations to modify critical program variables or execute code.","Execute Unauthorized Code or Commands; Modify Memory
+Scope: Integrity, Confidentiality, Availability There is the potential for arbitrary code execution with privileges of the vulnerable program via a ""write, what where"" primitive. If pointers to memory which hold user information are freed, a malicious user will be able to write 4 bytes anywhere in memory.","Only free pointers that you have called malloc on previously. This is the recommended solution. Keep track of which pointers point at the beginning of valid chunks and free them only once.
+
+Before freeing a pointer, the programmer should make sure that the pointer was previously allocated on the heap and that the memory belongs to the programmer. Freeing an unallocated pointer will cause undefined behavior in the program.
+
+Strategy: Libraries or Frameworks Use a vetted library or framework that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid. For example, glibc in Linux provides protection against free of invalid pointers.
+
+Use a language that provides abstractions for memory allocation and deallocation.
+
+Use a tool that dynamically detects memory management problems, such as valgrind.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+628,Function Call with Incorrectly Specified Arguments,ALLOWED,Base,"The product calls a function, procedure, or routine with arguments that are not correctly specified, leading to always-incorrect behavior and resultant weaknesses.
+
+There are multiple ways in which this weakness can be introduced, including:
+
+the wrong variable or reference;
+an incorrect number of arguments;
+incorrect order of arguments;
+wrong type of arguments; or
+wrong value.","Quality Degradation; Gain Privileges or Assume Identity
+Scope: Other, Access Control This weakness can cause unintended behavior and can lead to additional weaknesses such as allowing an attacker to gain unintended access to system resources.","Once found, these issues are easy to fix. Use code inspection tools and relevant compiler features to identify potential violations. Pay special attention to code that is not likely to be exercised heavily during QA.
+
+Make sure your API's are stable before you use them in production code.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+662,Improper Synchronization,DISCOURAGED,Class,"The product utilizes multiple threads, processes, components, or systems to allow temporary access to a shared resource that can only be exclusive to one process at a time, but it does not properly synchronize these actions, which might cause simultaneous accesses of this resource by multiple threads or processes.
+
+Synchronization refers to a variety of behaviors and mechanisms that allow two or more independently-operating processes or threads to ensure that they operate on shared resources in predictable ways that do not interfere with each other.  Some shared resource operations cannot be executed atomically; that is, multiple steps must be guaranteed to execute sequentially, without any interference by other processes.  Synchronization mechanisms vary widely, but they may include locking, mutexes, and semaphores.  When a multi-step operation on a shared resource cannot be guaranteed to execute independent of interference, then the resulting behavior can be unpredictable. Improper synchronization could lead to data or memory corruption, denial of service, etc.","Modify Application Data; Read Application Data; Alter Execution Logic
+Scope: Integrity, Confidentiality, Other",Use industry standard APIs to synchronize your code.,Examine children of this entry to see if there is a better fit,N/A
+664,Improper Control of a Resource Through its Lifetime,DISCOURAGED,Pillar,"The product does not maintain or incorrectly maintains control over a resource throughout its lifetime of creation, use, and release.
+
+Resources often have explicit instructions on how to be created, used and destroyed. When code does not follow these instructions, it can lead to unexpected behaviors and potentially exploitable states.
+Even without explicit instructions, various principles are expected to be adhered to, such as ""Do not use an object until after its creation is complete,"" or ""do not use an object after it has been slated for destruction.""","Other
+Scope: Other",N/A,Consider children or descendants of this entry instead.,N/A
+666,Operation on Resource in Wrong Phase of Lifetime,DISCOURAGED,Class,"The product performs an operation on a resource at the wrong phase of the resource's lifecycle, which can lead to unexpected behaviors.
+
+A resource's lifecycle includes several phases: initialization, use, and release. For each phase, it is important to follow the specifications outlined for how to operate on the resource and to ensure that the resource is in the expected phase. Otherwise, if a resource is in one phase but the operation is not valid for that phase (i.e., an incorrect phase of the resource's lifetime), then this can produce resultant weaknesses. For example, using a resource before it has been fully initialized could cause corruption or incorrect data to be used.","Other
+Scope: Other",Follow the resource's lifecycle from creation to release.,Examine children of this entry to see if there is a better fit,N/A
+667,Improper Locking,ALLOWED,Class,"The product does not properly acquire or release a lock on a resource, leading to unexpected resource state changes and behaviors.
+
+Locking is a type of synchronization behavior that ensures that multiple independently-operating processes or threads do not interfere with each other when accessing the same resource. All processes/threads are expected to follow the same steps for locking. If these steps are not followed precisely - or if no locking is done at all - then another process/thread could modify the shared resource in a way that is not visible or predictable to the original process.  This can lead to data or memory corruption, denial of service, etc.","DoS: Resource Consumption (CPU)
+Scope: Availability Inconsistent locking discipline can lead to deadlock.",Strategy: Libraries or Frameworks Use industry standard APIs to implement locking mechanism.,Examine children of this entry to see if there is a better fit,N/A
+672,Operation on a Resource after Expiration or Release,ALLOWED,Class,"The product uses, accesses, or otherwise operates on a resource after that resource has been expired, released, or revoked.","Modify Application Data; Read Application Data
+Scope: Integrity, Confidentiality If a released resource is subsequently reused or reallocated, then an attempt to use the original resource might allow access to sensitive data that is associated with a different user or entity.
+
+Other; DoS: Crash, Exit, or Restart
+Scope: Other, Availability When a resource is released it might not be in an expected state, later attempts to access the resource may lead to resultant errors that may lead to a crash.",N/A,Examine children of this entry to see if there is a better fit,N/A
+676,Use of Potentially Dangerous Function,ALLOWED,Base,"The product invokes a potentially dangerous function that could introduce a vulnerability if it is used incorrectly, but the function can also be used safely.","Varies by Context; Quality Degradation; Unexpected State
+Scope: Other If the function is used incorrectly, then it could result in security problems.","Identify a list of prohibited API functions and prohibit developers from using these functions, providing safer alternatives. In some cases, automatic code analysis tools or the compiler can be instructed to spot use of prohibited functions, such as the ""banned.h"" include file from Microsoft's SDL. [ REF-554 ] [ REF-7 ]",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+680,Integer Overflow to Buffer Overflow,DISCOURAGED,N/A,"The product performs a calculation to determine how much memory to allocate, but an integer overflow can occur that causes less memory to be allocated than expected, leading to a buffer overflow.","Modify Memory; DoS: Crash, Exit, or Restart; Execute Unauthorized Code or Commands
+Scope: Integrity, Availability, Confidentiality",N/A,Mapping to each separate weakness in the chain would be more precise.,N/A
+681,Incorrect Conversion between Numeric Types,ALLOWED,Base,"When converting from one data type to another, such as long to integer, data can be omitted or translated in a way that produces unexpected values. If the resulting values are used in a sensitive context, then dangerous behaviors may occur.","Unexpected State; Quality Degradation
+Scope: Other, Integrity The program could wind up using the wrong number and generate incorrect results. If the number is used to allocate resources or make a security decision, then this could introduce a vulnerability.",Avoid making conversion between numeric types. Always check for the allowed ranges.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+682,Incorrect Calculation,DISCOURAGED,Pillar,"The product performs a calculation that generates incorrect or unintended results that are later used in security-critical decisions or resource management.
+
+When product performs a security-critical calculation incorrectly, it might lead to incorrect resource allocations, incorrect privilege assignments, or failed comparisons among other things. Many of the direct results of an incorrect calculation can lead to even larger problems such as failed protection mechanisms or even arbitrary code execution.","DoS: Crash, Exit, or Restart
+Scope: Availability If the incorrect calculation causes the program to move into an unexpected state, it may lead to a crash or impairment of service.
+
+DoS: Crash, Exit, or Restart; DoS: Resource Consumption (Other); Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability If the incorrect calculation is used in the context of resource allocation, it could lead to an out-of-bounds operation ( CWE-119 ) leading to a crash or even arbitrary code execution. Alternatively, it may result in an integer overflow ( CWE-190 ) and / or a resource consumption problem ( CWE-400 ).
+
+Gain Privileges or Assume Identity
+Scope: Access Control In the context of privilege or permissions assignment, an incorrect calculation can provide an attacker with access to sensitive resources.
+
+Bypass Protection Mechanism
+Scope: Access Control If the incorrect calculation leads to an insufficient comparison ( CWE-697 ), it may compromise a protection mechanism such as a validation routine and allow an attacker to bypass the security-critical code.","Understand your programming language's underlying representation and how it interacts with numeric calculation. Pay close attention to byte size discrepancies, precision, signed/unsigned distinctions, truncation, conversion and casting between types, ""not-a-number"" calculations, and how your language handles numbers that are too large or too small for its underlying representation.
+
+Strategy: Input Validation Perform input validation on any numeric input by ensuring that it is within the expected range. Enforce that the input meets both the minimum and maximum requirements for the expected range.
+
+Use the appropriate type for the desired action. For example, in C/C++, only use unsigned types for values that could never be negative, such as height, width, or other numbers related to quantity.
+
+Strategy: Language Selection Use languages, libraries, or frameworks that make it easier to handle numbers without unexpected consequences. Examples include safe integer handling packages such as SafeInt (C++) or IntegerLib (C or C++).
+
+Strategy: Libraries or Frameworks Use languages, libraries, or frameworks that make it easier to handle numbers without unexpected consequences. Examples include safe integer handling packages such as SafeInt (C++) or IntegerLib (C or C++).
+
+Strategy: Compilation or Build Hardening Examine compiler warnings closely and eliminate problems with potential security implications, such as signed / unsigned mismatch in memory operations, or use of uninitialized variables. Even if the weakness is rarely exploitable, a single failure may lead to the compromise of the entire system.
+
+Use automated static analysis tools that target this type of weakness. Many modern techniques use data flow analysis to minimize the number of false positives. This is not a perfect solution, since 100% accuracy and coverage are not feasible.
+
+Use dynamic tools and techniques that interact with the product using large test suites with many diverse inputs, such as fuzz testing (fuzzing), robustness testing, and fault injection. The product's operation may slow down, but it should not become unstable, crash, or generate incorrect results.","Where feasible, consider children or descendants of this entry instead.",N/A
+685,Function Call With Incorrect Number of Arguments,ALLOWED,Variant,"The product calls a function, procedure, or routine, but the caller specifies too many arguments, or too few arguments, which may lead to undefined behavior and resultant weaknesses.","Quality Degradation
+Scope: Other",Because this function call often produces incorrect behavior it will usually be detected during testing or normal operation of the product. During testing exercise all possible control paths will typically expose this weakness except in rare cases when the incorrect function call accidentally produces the correct results or if the provided argument type is very similar to the expected argument type.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+686,Function Call With Incorrect Argument Type,ALLOWED,Variant,"The product calls a function, procedure, or routine, but the caller specifies an argument that is the wrong data type, which may lead to resultant weaknesses.
+
+This weakness is most likely to occur in loosely typed languages, or in strongly typed languages in which the types of variable arguments cannot be enforced at compilation time, or where there is implicit casting.","Quality Degradation
+Scope: Other",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+690,Unchecked Return Value to NULL Pointer Dereference,DISCOURAGED,N/A,"The product does not check for an error after calling a function that can return with a NULL pointer if the function fails, which leads to a resultant NULL pointer dereference.
+
+While unchecked return value weaknesses are not limited to returns of NULL pointers (see the examples in CWE-252), functions often return NULL to indicate an error status. When this error condition is not checked, a NULL pointer dereference can occur.","DoS: Crash, Exit, or Restart
+Scope: Availability
+
+Execute Unauthorized Code or Commands; Read Memory; Modify Memory
+Scope: Integrity, Confidentiality, Availability In rare circumstances, when NULL is equivalent to the 0x0 memory address and privileged code can access it, then writing or reading memory is possible, which may lead to code execution.",N/A,Mapping to each separate weakness in the chain would be more precise.,N/A
+696,Incorrect Behavior Order,ALLOWED,Class,"The product performs multiple related behaviors, but the behaviors are performed in the wrong order in ways that may produce resultant weaknesses.","Alter Execution Logic
+Scope: Integrity",N/A,Examine children of this entry to see if there is a better fit,N/A
+704,Incorrect Type Conversion or Cast,ALLOWED,Class,"The product does not correctly convert an object, resource, or structure from one type to a different type.","Other
+Scope: Other",N/A,Examine children of this entry to see if there is a better fit,N/A
+705,Incorrect Control Flow Scoping,ALLOWED,Class,The product does not properly return control flow to the proper location after it has completed a task or detected an unusual condition.,"Alter Execution Logic; Other
+Scope: Other",N/A,Examine children of this entry to see if there is a better fit,N/A
+758,"Reliance on Undefined, Unspecified, or Implementation-Defined Behavior",ALLOWED,Class,"The product uses an API function, data structure, or other entity in a way that relies on properties that are not always guaranteed to hold for that entity.
+
+This can lead to resultant weaknesses when the required properties change, such as when the product is ported to a different platform or if an interaction error (CWE-435) occurs.","Reduce Maintainability; Unexpected State; Quality Degradation
+Scope: Other",N/A,Examine children of this entry to see if there is a better fit,N/A
+762,Mismatched Memory Management Routines,ALLOWED,Variant,"The product attempts to return a memory resource to the system, but it calls a release function that is not compatible with the function that was originally used to allocate that resource.
+
+This weakness can be generally described as mismatching memory management routines, such as:
+
+The memory was allocated on the stack (automatically), but it was deallocated using the memory management routine free() (CWE-590), which is intended for explicitly allocated heap memory.
+The memory was allocated explicitly using one set of memory management functions, and deallocated using a different set. For example, memory might be allocated with malloc() in C++ instead of the new operator, and then deallocated with the delete operator.
+
+When the memory management functions are mismatched, the consequences may be as severe as code execution, memory corruption, or program crash. Consequences and ease of exploit will vary depending on the implementation of the routines and the object being managed.","Modify Memory; DoS: Crash, Exit, or Restart; Execute Unauthorized Code or Commands
+Scope: Integrity, Availability, Confidentiality","Only call matching memory management functions. Do not mix and match routines. For example, when you allocate a buffer with malloc(), dispose of the original pointer with free().
+
+Strategy: Libraries or Frameworks Choose a language or tool that provides automatic memory management, or makes manual memory management less error-prone. For example, glibc in Linux provides protection against free of invalid pointers. When using Xcode to target OS X or iOS, enable automatic reference counting (ARC) [ REF-391 ]. To help correctly and consistently manage memory when programming in C++, consider using a smart pointer class such as std::auto_ptr (defined by ISO/IEC ISO/IEC 14882:2003), std::shared_ptr and std::unique_ptr (specified by an upcoming revision of the C++ standard, informally referred to as C++ 1x), or equivalent solutions such as Boost.
+
+Strategy: Libraries or Frameworks Use a vetted library or framework that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid. For example, glibc in Linux provides protection against free of invalid pointers.
+
+Use a language that provides abstractions for memory allocation and deallocation.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+771,Missing Reference to Active Allocated Resource,ALLOWED,Base,"The product does not properly maintain a reference to a resource that has been allocated, which prevents the resource from being reclaimed.
+
+This does not necessarily apply in languages or frameworks that automatically perform garbage collection, since the removal of all references may act as a signal that the resource is ready to be reclaimed.","DoS: Resource Consumption (Other)
+Scope: Availability An attacker that can influence the allocation of resources that are not properly maintained could deplete the available resource pool and prevent all other processes from accessing the same type of resource.","Strategy: Resource Limitation Use resource-limiting settings provided by the operating system or environment. For example, when managing system resources in POSIX, setrlimit() can be used to set limits for certain types of resources, and getrlimit() can determine how many resources are available. However, these functions are not available on all operating systems. When the current levels get close to the maximum that is defined for the application (see CWE-770 ), then limit the allocation of further resources to privileged users; alternately, begin releasing resources for less-privileged users. While this mitigation may protect the system from attack, it will not necessarily stop attackers from adversely impacting other users. Ensure that the application performs the appropriate error checks and error handling in case resources become unavailable ( CWE-703 ).",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+772,Missing Release of Resource after Effective Lifetime,ALLOWED,Base,"The product does not release a resource after its effective lifetime has ended, i.e., after the resource is no longer needed.","DoS: Resource Consumption (Other); DoS: Resource Consumption (Memory); DoS: Resource Consumption (CPU)
+Scope: Availability An attacker that can influence the allocation of resources that are not properly released could deplete the available resource pool and prevent all other processes from accessing the same type of resource. Frequently-affected resources include memory, CPU, disk space, power or battery, etc.","Strategy: Language Selection Use a language that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid. For example, languages such as Java, Ruby, and Lisp perform automatic garbage collection that releases memory for objects that have been deallocated.
+
+It is good practice to be responsible for freeing all resources you allocate and to be consistent with how and where you free resources in a function. If you allocate resources that you intend to free upon completion of the function, you must be sure to free the resources at all exit points for that function including error conditions.
+
+Strategy: Resource Limitation Use resource-limiting settings provided by the operating system or environment. For example, when managing system resources in POSIX, setrlimit() can be used to set limits for certain types of resources, and getrlimit() can determine how many resources are available. However, these functions are not available on all operating systems. When the current levels get close to the maximum that is defined for the application (see CWE-770 ), then limit the allocation of further resources to privileged users; alternately, begin releasing resources for less-privileged users. While this mitigation may protect the system from attack, it will not necessarily stop attackers from adversely impacting other users. Ensure that the application performs the appropriate error checks and error handling in case resources become unavailable ( CWE-703 ).",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+773,Missing Reference to Active File Descriptor or Handle,ALLOWED,Variant,"The product does not properly maintain references to a file descriptor or handle, which prevents that file descriptor/handle from being reclaimed.
+
+This can cause the product to consume all available file descriptors or handles, which can prevent other processes from performing critical file processing operations.","DoS: Resource Consumption (Other)
+Scope: Availability An attacker that can influence the allocation of resources that are not properly maintained could deplete the available resource pool and prevent all other processes from accessing the same type of resource.","Strategy: Resource Limitation Use resource-limiting settings provided by the operating system or environment. For example, when managing system resources in POSIX, setrlimit() can be used to set limits for certain types of resources, and getrlimit() can determine how many resources are available. However, these functions are not available on all operating systems. When the current levels get close to the maximum that is defined for the application (see CWE-770 ), then limit the allocation of further resources to privileged users; alternately, begin releasing resources for less-privileged users. While this mitigation may protect the system from attack, it will not necessarily stop attackers from adversely impacting other users. Ensure that the application performs the appropriate error checks and error handling in case resources become unavailable ( CWE-703 ).",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+775,Missing Release of File Descriptor or Handle after Effective Lifetime,ALLOWED,Variant,"The product does not release a file descriptor or handle after its effective lifetime has ended, i.e., after the file descriptor/handle is no longer needed.
+
+When a file descriptor or handle is not released after use (typically by explicitly closing it), attackers can cause a denial of service by consuming all available file descriptors/handles, or otherwise preventing other system processes from obtaining their own file descriptors/handles.","DoS: Resource Consumption (Other)
+Scope: Availability An attacker that can influence the allocation of resources that are not properly released could deplete the available resource pool and prevent all other processes from accessing the same type of resource.","Strategy: Resource Limitation Use resource-limiting settings provided by the operating system or environment. For example, when managing system resources in POSIX, setrlimit() can be used to set limits for certain types of resources, and getrlimit() can determine how many resources are available. However, these functions are not available on all operating systems. When the current levels get close to the maximum that is defined for the application (see CWE-770 ), then limit the allocation of further resources to privileged users; alternately, begin releasing resources for less-privileged users. While this mitigation may protect the system from attack, it will not necessarily stop attackers from adversely impacting other users. Ensure that the application performs the appropriate error checks and error handling in case resources become unavailable ( CWE-703 ).",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+786,Access of Memory Location Before Start of Buffer,DISCOURAGED,Base,"The product reads or writes to a buffer using an index or pointer that references a memory location prior to the beginning of the buffer.
+
+This typically occurs when a pointer or its index is decremented to a position before the buffer, when pointer arithmetic results in a position before the beginning of the valid memory location, or when a negative index is used.","Read Memory
+Scope: Confidentiality For an out-of-bounds read, the attacker may have access to sensitive information. If the sensitive information contains system details, such as the current buffer's position in memory, this knowledge can be used to craft further attacks, possibly with more severe consequences.
+
+Modify Memory; DoS: Crash, Exit, or Restart
+Scope: Integrity, Availability Out of bounds memory access will very likely result in the corruption of relevant memory, and perhaps instructions, possibly leading to a crash.
+
+Modify Memory; Execute Unauthorized Code or Commands
+Scope: Integrity If the corrupted memory can be effectively controlled, it may be possible to execute arbitrary code. If the corrupted memory is data rather than instructions, the system will continue to function with improper changes, possibly in violation of an implicit or explicit policy.",N/A,"If the ""Access"" operation is known to be a read or a write, then investigate children of entries such as CWE-787 : Out-of-bounds Write and CWE-125 : Out-of-bounds Read.",N/A
+789,Memory Allocation with Excessive Size Value,ALLOWED,Variant,"The product allocates memory based on an untrusted, large size value, but it does not ensure that the size is within expected limits, allowing arbitrary amounts of memory to be allocated.","DoS: Resource Consumption (Memory)
+Scope: Availability Not controlling memory allocation can result in a request for too much system memory, possibly leading to a crash of the application due to out-of-memory conditions, or the consumption of a large amount of memory on the system.","Perform adequate input validation against any value that influences the amount of memory that is allocated. Define an appropriate strategy for handling requests that exceed the limit, and consider supporting a configuration option so that the administrator can extend the amount of memory to be used if necessary.
+
+Run your program using system-provided resource limits for memory. This might still cause the program to crash or exit, but the impact to the rest of the system will be minimized.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,"Stack Exhaustion
+                                    
+
+When a weakness allocates excessive memory on the stack, it is often described as ""stack exhaustion,"" which is a technical impact of the weakness. This technical impact is often encountered as a consequence of CWE-789 and/or CWE-1325."
+805,Buffer Access with Incorrect Length Value,ALLOWED,Base,"The product uses a sequential operation to read or write a buffer, but it uses an incorrect length value that causes it to access memory that is outside of the bounds of the buffer.
+
+When the length value exceeds the size of the destination, a buffer overflow could occur.","Read Memory; Modify Memory; Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability Buffer overflows often can be used to execute arbitrary code, which is usually outside the scope of a program's implicit security policy. This can often be used to subvert any other security service.
+
+Modify Memory; DoS: Crash, Exit, or Restart; DoS: Resource Consumption (CPU)
+Scope: Availability Buffer overflows generally lead to crashes. Other attacks leading to lack of availability are possible, including putting the program into an infinite loop.","Strategy: Language Selection Use a language that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid. For example, many languages that perform their own memory management, such as Java and Perl, are not subject to buffer overflows. Other languages, such as Ada and C#, typically provide overflow protection, but the protection can be disabled by the programmer. Be wary that a language's interface to native code may still be subject to overflows, even if the language itself is theoretically safe.
+
+Strategy: Libraries or Frameworks Use a vetted library or framework that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid. Examples include the Safe C String Library (SafeStr) by Messier and Viega [ REF-57 ], and the Strsafe.h library from Microsoft [ REF-56 ]. These libraries provide safer versions of overflow-prone string-handling functions. Note: This is not a complete solution, since many buffer overflows are not related to strings.
+
+Strategy: Environment Hardening Use automatic buffer overflow detection mechanisms that are offered by certain compilers or compiler extensions. Examples include: the Microsoft Visual Studio /GS flag, Fedora/Red Hat FORTIFY_SOURCE GCC flag, StackGuard, and ProPolice, which provide various mechanisms including canary-based detection and range/index checking. D3-SFCV (Stack Frame Canary Validation) from D3FEND [ REF-1334 ] discusses canary-based detection in detail. Effectiveness: Defense in Depth Note: This is not necessarily a complete solution, since these mechanisms only detect certain types of overflows. In addition, the result is still a denial of service, since the typical response is to exit the application.
+
+Consider adhering to the following rules when allocating and managing an application's memory: Double check that the buffer is as large as specified. When using functions that accept a number of bytes to copy, such as strncpy(), be aware that if the destination buffer size is equal to the source buffer size, it may not NULL-terminate the string. Check buffer boundaries if accessing the buffer in a loop and make sure there is no danger of writing past the allocated space. If necessary, truncate all input strings to a reasonable length before passing them to the copy and concatenation functions.
+
+For any security checks that are performed on the client side, ensure that these checks are duplicated on the server side, in order to avoid CWE-602 . Attackers can bypass the client-side checks by modifying values after the checks have been performed, or by changing the client to remove the client-side checks entirely. Then, these modified values would be submitted to the server.
+
+Strategy: Environment Hardening Run or compile the software using features or extensions that randomly arrange the positions of a program's executable and libraries in memory. Because this makes the addresses unpredictable, it can prevent an attacker from reliably jumping to exploitable code. Examples include Address Space Layout Randomization (ASLR) [ REF-58 ] [ REF-60 ] and Position-Independent Executables (PIE) [ REF-64 ]. Imported modules may be similarly realigned if their default memory addresses conflict with other modules, in a process known as ""rebasing"" (for Windows) and ""prelinking"" (for Linux) [ REF-1332 ] using randomly generated addresses. ASLR for libraries cannot be used in conjunction with prelink since it would require relocating the libraries at run-time, defeating the whole purpose of prelinking. For more information on these techniques see D3-SAOR (Segment Address Offset Randomization) from D3FEND [ REF-1335 ]. Effectiveness: Defense in Depth Note: These techniques do not provide a complete solution.  For instance, exploits frequently use a bug that discloses memory addresses in order to maximize reliability of code execution [ REF-1337 ]. It has also been shown that a side-channel attack can bypass ASLR [ REF-1333 ].
+
+Strategy: Environment Hardening Use a CPU and operating system that offers Data Execution Protection (using hardware NX or XD bits) or the equivalent techniques that simulate this feature in software, such as PaX [ REF-60 ] [ REF-61 ]. These techniques ensure that any instruction executed is exclusively at a memory address that is part of the code segment. For more information on these techniques see D3-PSEP (Process Segment Execution Prevention) from D3FEND [ REF-1336 ]. Effectiveness: Defense in Depth Note: This is not a complete solution, since buffer overflows could be used to overwrite nearby variables to modify the software's state in dangerous ways. In addition, it cannot be used in cases in which self-modifying code is required. Finally, an attack could still cause a denial of service, since the typical response is to exit the application.
+
+Strategy: Environment Hardening Run your code using the lowest privileges that are required to accomplish the necessary tasks [ REF-76 ]. If possible, create isolated accounts with limited privileges that are only used for a single task. That way, a successful attack will not immediately give the attacker access to the rest of the product or its environment. For example, database applications rarely need to run as the database administrator, especially in day-to-day operations.
+
+Strategy: Sandbox or Jail Run the code in a ""jail"" or similar sandbox environment that enforces strict boundaries between the process and the operating system. This may effectively restrict which files can be accessed in a particular directory or which commands can be executed by the software. OS-level examples include the Unix chroot jail, AppArmor, and SELinux. In general, managed code may provide some protection. For example, java.io.FilePermission in the Java SecurityManager allows the software to specify restrictions on file operations. This may not be a feasible solution, and it only limits the impact to the operating system; the rest of the application may still be subject to compromise. Be careful to avoid CWE-243 and other weaknesses related to jails. Effectiveness: Limited Note: The effectiveness of this mitigation depends on the prevention capabilities of the specific sandbox or jail being used and might only help to reduce the scope of an attack, such as restricting the attacker to certain system calls or limiting the portion of the file system that can be accessed.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+843,Access of Resource Using Incompatible Type ('Type Confusion'),ALLOWED,Base,"The product allocates or initializes a resource such as a pointer, object, or variable using one type, but it later accesses that resource using a type that is incompatible with the original type.
+
+When the product accesses the resource using an incompatible type, this could trigger logical errors because the resource does not have expected properties. In languages without memory safety, such as C and C++, type confusion can lead to out-of-bounds memory access.
+While this weakness is frequently associated with unions when parsing data with many different embedded object types in C, it can be present in any application that can interpret the same variable or memory location in multiple ways.
+This weakness is not unique to C and C++. For example, errors in PHP applications can be triggered by providing array parameters when scalars are expected, or vice versa. Languages such as Perl, which perform automatic conversion of a variable of one type when it is accessed as if it were another type, can also contain these issues.","Read Memory; Modify Memory; Execute Unauthorized Code or Commands; DoS: Crash, Exit, or Restart
+Scope: Availability, Integrity, Confidentiality When a memory buffer is accessed using the wrong type, it could read or write memory out of the bounds of the buffer, if the allocated buffer is smaller than the type that the code is attempting to access, leading to a crash and possibly code execution.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,Object Type Confusion
+908,Use of Uninitialized Resource,ALLOWED,Base,"The product uses or accesses a resource that has not been initialized.
+
+When a resource has not been properly initialized, the product may behave unexpectedly. This may lead to a crash or invalid memory access, but the consequences vary depending on the type of resource and how it is used within the product.","Read Memory; Read Application Data
+Scope: Confidentiality When reusing a resource such as memory or a program variable, the original contents of that resource may not be cleared before it is sent to an untrusted party.
+
+DoS: Crash, Exit, or Restart
+Scope: Availability The uninitialized resource may contain values that cause program flow to change in ways that the programmer did not intend.","Explicitly initialize the resource before use. If this is performed through an API function or standard procedure, follow all required steps.
+
+Pay close attention to complex conditionals that affect initialization, since some branches might not perform the initialization.
+
+Avoid race conditions ( CWE-362 ) during initialization routines.
+
+Run or compile the product with settings that generate warnings about uninitialized variables or data.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+910,Use of Expired File Descriptor,ALLOWED,Base,"The product uses or accesses a file descriptor after it has been closed.
+
+After a file descriptor for a particular file or device has been released, it can be reused. The code might not write to the original file, since the reused file descriptor might reference a different file or device.","Read Files or Directories
+Scope: Confidentiality The program could read data from the wrong file.
+
+DoS: Crash, Exit, or Restart
+Scope: Availability Accessing a file descriptor that has been closed can cause a crash.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,Stale file descriptor

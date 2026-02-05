@@ -1,0 +1,495 @@
+ID,Title,Vulnerability_Mapping,Abstraction,Description,Impact,Mitigation,Comments,Alternate_Terms
+226,Sensitive Information in Resource Not Removed Before Reuse,ALLOWED,Base,"The product releases a resource such as memory or a file so that it can be made available for reuse, but it does not clear or ""zeroize"" the information contained in the resource before the product performs a critical state transition or makes the resource available for reuse by other entities.
+
+When resources are released, they can be made available for reuse. For example, after memory is de-allocated, an operating system may make the memory available to another process, or disk space may be reallocated when a file is deleted. As removing information requires time and additional resources, operating systems do not usually clear the previously written information.
+Even when the resource is reused by the same process, this weakness can arise when new data is not as large as the old data, which leaves portions of the old data still available. Equivalent errors can occur in other situations where the length of data is variable but the associated data structure is not. If memory is not cleared after use, the information may be read by less trustworthy parties when the memory is reallocated.
+This weakness can apply in hardware, such as when a device or system switches between power, sleep, or debug states during normal operation, or when execution changes to different users or privilege levels.","Read Application Data
+Scope: Confidentiality","During critical state transitions, information not needed in the next state should be removed or overwritten with fixed patterns (such as all 0's) or random data, before the transition to the next state. Effectiveness: High
+
+When releasing, de-allocating, or deleting a resource, overwrite its data and relevant metadata with fixed patterns or random data. Be cautious about complex resource types whose underlying representation might be non-contiguous or change at a low level, such as how a file might be split into different chunks on a file system, even though ""logical"" file positions are contiguous at the application layer. Such resource types might require invocation of special modes or APIs to tell the underlying operating system to perform the necessary clearing, such as SDelete (Secure Delete) on Windows, although the appropriate functionality might not be available at the application layer. Effectiveness: High",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1189,Improper Isolation of Shared Resources on System-on-a-Chip (SoC),ALLOWED,Base,"The System-On-a-Chip (SoC) does not properly isolate shared resources between trusted and untrusted agents.
+
+A System-On-a-Chip (SoC) has a lot of functionality, but it may have a limited number of pins or pads. A pin can only perform one function at a time. However, it can be configured to perform multiple different functions. This technique is called pin multiplexing. Similarly, several resources on the chip may be shared to multiplex and support different features or functions. When such resources are shared between trusted and untrusted agents, untrusted agents may be able to access the assets intended to be accessed only by the trusted agents.","Bypass Protection Mechanism
+Scope: Access Control If resources being used by a trusted user are shared with an untrusted user, the untrusted user may be able to modify the functionality of the shared resource of the trusted user.
+
+Quality Degradation
+Scope: Integrity The functionality of the shared resource may be intentionally degraded.","Strategy: Separation of Privilege When sharing resources, avoid mixing agents of varying trust levels. Untrusted agents should not share resources with trusted agents.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1191,On-Chip Debug and Test Interface With Improper Access Control,ALLOWED,Base,"The chip does not implement or does not correctly perform access control to check whether users are authorized to access internal registers and test modes through the physical debug/test interface.
+
+A device's internal information may be accessed through a scan chain of interconnected internal registers, usually through a JTAG interface. The JTAG interface provides access to these registers in a serial fashion in the form of a scan chain for the purposes of debugging programs running on a device. Since almost all information contained within a device may be accessed over this interface, device manufacturers typically insert some form of authentication and authorization to prevent unintended use of this sensitive information. This mechanism is implemented in addition to on-chip protections that are already present.
+If authorization, authentication, or some other form of access control is not implemented or not implemented correctly, a user may be able to bypass on-chip protection mechanisms through the debug interface.
+Sometimes, designers choose not to expose the debug pins on the motherboard. Instead, they choose to hide these pins in the intermediate layers of the board. This is primarily done to work around the lack of debug authorization inside the chip. In such a scenario (without debug authorization), when the debug interface is exposed, chip internals are accessible to an attacker.","Read Application Data
+Scope: Confidentiality Likelihood: High
+
+Read Memory
+Scope: Confidentiality Likelihood: High
+
+Execute Unauthorized Code or Commands
+Scope: Authorization Likelihood: High
+
+Modify Memory
+Scope: Integrity Likelihood: High
+
+Modify Application Data
+Scope: Integrity Likelihood: High
+
+Bypass Protection Mechanism
+Scope: Access Control Likelihood: High","Strategy: Separation of Privilege If feasible, the manufacturer should disable the JTAG interface or implement authentication and authorization for the JTAG interface. If authentication logic is added, it should be resistant to timing attacks. Security-sensitive data stored in registers, such as keys, etc. should be cleared when entering debug mode. Effectiveness: High",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1231,Improper Prevention of Lock Bit Modification,ALLOWED,Base,"The product uses a trusted lock bit for restricting access to registers, address regions, or other resources, but the product does not prevent the value of the lock bit from being modified after it has been set.
+
+In integrated circuits and hardware
+			  intellectual property (IP) cores, device configuration
+			  controls are commonly programmed after a device power
+			  reset by a trusted firmware or software module (e.g.,
+			  BIOS/bootloader) and then locked from any further
+			  modification.
+This behavior is commonly implemented using a trusted lock bit. 
+			  When set, the lock bit disables writes to a protected set of
+			  registers or address regions. Design or coding errors in
+			  the implementation of the lock bit protection feature
+			  may allow the lock bit to be modified or cleared by
+			  software after it has been set. Attackers might be able to unlock the system and
+			  features that the bit is intended to protect.","Modify Memory
+Scope: Access Control Likelihood: High Registers protected by lock bit can be modified even when lock is set.",Security lock bit protections must be reviewed for design inconsistency and common weaknesses. Security lock programming flow and lock properties must be tested in pre-silicon and post-silicon testing. Effectiveness: High,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1233,Security-Sensitive Hardware Controls with Missing Lock Bit Protection,ALLOWED,Base,"The product uses a register lock bit protection mechanism, but it does not ensure that the lock bit prevents modification of system registers or controls that perform changes to important hardware system configuration.
+
+Integrated circuits and hardware intellectual properties (IPs) might provide device configuration controls that need to be programmed after device power reset by a trusted firmware or software module, commonly set by BIOS/bootloader. After reset, there can be an expectation that the controls cannot be used to perform any further modification. This behavior is commonly implemented using a trusted lock bit, which can be set to disable writes to a protected set of registers or address regions. The lock protection is intended to prevent modification of certain system configuration (e.g., memory/memory protection unit configuration).
+However, if the lock bit does not effectively write-protect all system registers or controls that could modify the protected system configuration, then an adversary may be able to use software to access the registers/controls and modify the protected hardware configuration.","Modify Memory
+Scope: Access Control System Configuration protected by the lock bit can be modified even when the lock is set.",Security lock bit protections must be reviewed for design inconsistency and common weaknesses. Security lock programming flow and lock properties must be tested in pre-silicon and post-silicon testing.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1234,Hardware Internal or Debug Modes Allow Override of Locks,ALLOWED,Base,"System configuration protection may be bypassed during debug mode.
+
+Device configuration controls are commonly programmed after a device power reset by a trusted firmware or software module (e.g., BIOS/bootloader) and then locked from any further modification. This is commonly implemented using a trusted lock bit, which when set, disables writes to a protected set of registers or address regions. The lock protection is intended to prevent modification of certain system configuration (e.g., memory/memory protection unit configuration). If debug features supported by hardware or internal modes/system states are supported in the hardware design, modification of the lock protection may be allowed allowing access and modification of configuration information.","Bypass Protection Mechanism
+Scope: Access Control Likelihood: High Bypass of lock bit allows access and modification of system configuration even when the lock bit is set.",Security Lock bit protections should be reviewed for any bypass/override modes supported. Any supported override modes either should be removed or protected using authenticated debug modes. Security lock programming flow and lock properties should be tested in pre-silicon and post-silicon testing. Effectiveness: High,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1244,Internal Asset Exposed to Unsafe Debug Access Level or State,ALLOWED,Base,"The product uses physical debug or test
+        interfaces with support for multiple access levels, but it
+        assigns the wrong debug access level to an internal asset,
+        providing unintended access to the asset from untrusted debug
+        agents.
+
+Debug authorization can have multiple levels of
+	  access, defined such that different system internal assets
+	  are accessible based on the current authorized debug
+	  level. Other than debugger authentication (e.g., using
+	  passwords or challenges), the authorization can also be
+	  based on the system state or boot stage. For example, full
+	  system debug access might only be allowed early in boot
+	  after a system reset to ensure that previous session data is
+	  not accessible to the authenticated debugger.","Read Memory
+Scope: Confidentiality If a protection mechanism does not ensure that
+          internal assets have the correct debug access level during
+          each boot stage or change in system state, an attacker could
+          obtain sensitive information from the internal asset using a
+          debugger.
+
+Modify Memory
+Scope: Integrity
+
+Gain Privileges or Assume Identity; Bypass Protection Mechanism
+Scope: Authorization, Access Control","For security-sensitive assets accessible over debug/test interfaces, only allow trusted agents. Effectiveness: High
+
+Apply blinding [ REF-1219 ] or masking techniques in strategic areas. Effectiveness: Limited
+
+Add shielding or tamper-resistant protections to the device, which increases the difficulty and cost for accessing debug/test interfaces. Effectiveness: Limited",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1247,Improper Protection Against Voltage and Clock Glitches,ALLOWED,Base,"The device does not contain or contains incorrectly implemented circuitry or sensors to detect and mitigate voltage and clock glitches and protect sensitive information or software contained on the device.
+
+A device might support features such as secure boot which are supplemented with hardware and firmware support. This involves establishing a chain of trust, starting with an immutable root of trust by checking the signature of the next stage (culminating with the OS and runtime software) against a golden value before transferring control. The intermediate stages typically set up the system in a secure state by configuring several access control settings. Similarly, security logic for exercising a debug or testing interface may be implemented in hardware, firmware, or both. A device needs to guard against fault attacks such as voltage glitches and clock glitches that an attacker may employ in an attempt to compromise the system.","Gain Privileges or Assume Identity; Bypass Protection Mechanism; Read Memory; Modify Memory; Execute Unauthorized Code or Commands
+Scope: Confidentiality, Integrity, Availability, Access Control","At the circuit-level, using Tunable Replica Circuits (TRCs) or special flip-flops such as Razor flip-flops helps mitigate glitch attacks. Working at the SoC or platform base, level sensors may be implemented to detect glitches. Implementing redundancy in security-sensitive code (e.g., where checks are performed)also can help with mitigation of glitch attacks.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1256,Improper Restriction of Software Interfaces to Hardware Features,ALLOWED,Base,"The product provides software-controllable
+			device functionality for capabilities such as power and
+			clock management, but it does not properly limit
+			functionality that can lead to modification of
+			hardware memory or register bits, or the ability to
+			observe physical side channels.
+
+It is frequently assumed that physical attacks
+              such as fault injection and side-channel analysis
+              require an attacker to have physical access to the
+              target device.  This assumption may be false if the
+              device has improperly secured power management features,
+              or similar features.  For mobile devices, minimizing
+              power consumption is critical, but these devices run a
+              wide variety of applications with different performance
+              requirements. Software-controllable mechanisms to
+              dynamically scale device voltage and frequency and
+              monitor power consumption are common features in today's
+              chipsets, but they also enable attackers to mount fault
+              injection and side-channel attacks without having
+              physical access to the device.
+Fault injection attacks involve strategic
+              manipulation of bits in a device to achieve a desired
+              effect such as skipping an authentication step,
+              elevating privileges, or altering the output of a
+              cryptographic operation.  Manipulation of the device
+              clock and voltage supply is a well-known technique to
+              inject faults and is cheap to implement with physical
+              device access.  Poorly protected power management
+              features allow these attacks to be performed from
+              software.  Other features, such as the ability to write
+              repeatedly to DRAM at a rapid rate from unprivileged
+              software, can result in bit flips in other memory
+              locations (Rowhammer, [REF-1083]).
+Side channel analysis requires gathering
+			  measurement traces of physical quantities such as power
+			  consumption.  Modern processors often include power
+			  metering capabilities in the hardware itself (e.g.,
+			  Intel RAPL) which if not adequately protected enable
+			  attackers to gather measurements necessary for
+			  performing side-channel attacks from software.","Modify Memory; Modify Application Data; Bypass Protection Mechanism
+Scope: Integrity",Ensure proper access control mechanisms protect software-controllable features altering physical operating conditions such as clock frequency and voltage.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1260,Improper Handling of Overlap Between Protected Memory Ranges,ALLOWED,Base,"The product allows address regions to overlap, which can result in the bypassing of intended memory protection.
+
+Isolated memory regions and access control (read/write) policies are used by hardware to protect privileged software. Software components are often allowed to change or remap memory region definitions in order to enable flexible and dynamically changeable memory management by system software.
+If a software component running at lower privilege can program a memory address region to overlap with other memory regions used by software running at higher privilege, privilege escalation may be available to attackers. The memory protection unit (MPU) logic can incorrectly handle such an address overlap and allow the lower-privilege software to read or write into the protected memory region, resulting in privilege escalation attack. An address overlap weakness can also be used to launch a denial of service attack on the higher-privilege software memory regions.","Modify Memory; Read Memory; DoS: Instability
+Scope: Confidentiality, Integrity, Availability Likelihood: High","Ensure that memory regions are isolated as intended and that access control (read/write) policies are used by hardware to protect privileged software.
+
+For all of the programmable memory protection regions, the memory protection unit (MPU) design can define a priority scheme. For example: if three memory regions can be programmed (Region_0, Region_1, and Region_2), the design can enforce a priority scheme, such that, if a system address is within multiple regions, then the region with the lowest ID takes priority and the access-control policy of that region will be applied.  In some MPU designs, the priority scheme can also be programmed by trusted software. Hardware logic or trusted firmware can also check for region definitions and block programming of memory regions with overlapping addresses. The memory-access-control-check filter can also be designed to apply a policy filter to all of the overlapping ranges, i.e., if an address is within Region_0 and Region_1, then access to this address is only granted if both Region_0 and Region_1 policies allow the access. Effectiveness: High",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1262,Improper Access Control for Register Interface,ALLOWED,Base,"The product uses memory-mapped I/O registers that act as an interface to hardware functionality from software, but there is improper access control to those registers.
+
+Software commonly accesses peripherals in a System-on-Chip (SoC) or other device through a memory-mapped register interface. Malicious software could tamper with any security-critical hardware data that is accessible directly or indirectly through the register interface, which could lead to a loss of confidentiality and integrity.","Read Memory; Read Application Data; Modify Memory; Modify Application Data; Gain Privileges or Assume Identity; Bypass Protection Mechanism; Unexpected State; Alter Execution Logic
+Scope: Confidentiality, Integrity Confidentiality of hardware assets may be violated if the protected information can be read out by software through the register interface. Registers storing security state, settings, other security-critical data may be corruptible by software without correctly implemented protections.","Design proper policies for hardware register access from software.
+
+Ensure that access control policies for register access are implemented in accordance with the specified design.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1272,Sensitive Information Uncleared Before Debug/Power State Transition,ALLOWED,Base,"The product performs a power or debug state transition, but it does not clear sensitive information that should no longer be accessible due to changes to information access restrictions.
+
+A device or system frequently employs many power and sleep states during its normal operation (e.g., normal power, additional power, low power, hibernate, deep sleep, etc.). A device also may be operating within a debug condition. State transitions can happen from one power or debug state to another. If there is information available in the previous state which should not be available in the next state and is not properly removed before the transition into the next state, sensitive information may leak from the system.","Read Memory; Read Application Data
+Scope: Confidentiality, Integrity, Availability, Access Control, Accountability, Authentication, Authorization, Non-Repudiation Likelihood: High Sensitive information may be used to unlock additional capabilities of the device and take advantage of hidden functionalities which could be used to compromise device security.","During state transitions, information not needed in the next state should be removed before the transition to the next state.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1300,Improper Protection of Physical Side Channels,ALLOWED,Base,"The device does not contain sufficient protection
+	mechanisms to prevent physical side channels from exposing
+	sensitive information due to patterns in physically observable
+	phenomena such as variations in power consumption,
+	electromagnetic emissions (EME), or acoustic emissions.
+
+An adversary could monitor and measure physical
+	  phenomena to detect patterns and make inferences, even if it
+	  is not possible to extract the information in the digital
+	  domain.
+Physical side channels have been well-studied for
+	  decades in the context of breaking implementations of
+	  cryptographic algorithms or other attacks against security
+	  features. These side channels may be easily observed by an
+	  adversary with physical access to the device, or using a
+	  tool that is in close proximity.  If the adversary can
+	  monitor hardware operation and correlate its data processing
+	  with power, EME, and acoustic measurements, the adversary
+	  might be able to recover of secret keys and data.","Read Memory; Read Application Data
+Scope: Confidentiality","Apply blinding or masking techniques to implementations of cryptographic algorithms.
+
+Add shielding or tamper-resistant protections to the device to increase the difficulty of obtaining measurements of the side-channel.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1421,Exposure of Sensitive Information in Shared Microarchitectural Structures during Transient Execution,ALLOWED,Base,"A processor event may allow transient operations to access
+			architecturally restricted data (for example, in another address
+			space) in a shared microarchitectural structure (for example, a CPU
+			cache), potentially exposing the data over a covert channel.
+
+Many commodity processors have Instruction Set Architecture (ISA)
+			features that protect software components from one another. These
+			features can include memory segmentation, virtual memory, privilege
+			rings, trusted execution environments, and virtual machines, among
+			others. For example, virtual memory provides each process with its own
+			address space, which prevents processes from accessing each other's
+			private data. Many of these features can be used to form
+			hardware-enforced security boundaries between software components.
+Many commodity processors also share microarchitectural resources that
+			cache (temporarily store) data, which may be confidential. These
+			resources may be shared across processor contexts, including across
+			SMT threads, privilege rings, or others.
+When transient operations allow access to ISA-protected data in a
+			shared microarchitectural resource, this might violate users'
+			expectations of the ISA feature that is bypassed. For example, if
+			transient operations can access a victim's private data in a shared
+			microarchitectural resource, then the operations' microarchitectural
+			side effects may correspond to the accessed data. If an attacker can
+			trigger these transient operations and observe their side effects
+			through a covert channel [REF-1400], then the attacker may be able to infer the
+			victim's private data. Private data could include sensitive program
+			data, OS/VMM data, page table data (such as memory addresses), system
+			configuration data (see Demonstrative Example 3), or any other data
+			that the attacker does not have the required privileges to access.","Read Memory
+Scope: Confidentiality Likelihood: Medium <<put the information here>>","Hardware designers may choose to engineer the processor's
+				pipeline to prevent architecturally restricted data from being used by
+				operations that can execute transiently. Effectiveness: High
+
+Hardware designers may choose not to share
+				microarchitectural resources that can contain sensitive data, such as
+				fill buffers and store buffers. Effectiveness: Moderate Note: This can be highly effective at preventing this
+				weakness from being exposed across different SMT threads or different
+				processor cores. It is generally less practical to isolate these
+				resources between different contexts (for example, user and kernel)
+				that may execute on the same SMT thread or processor core.
+
+Hardware designers may choose to sanitize specific
+				microarchitectural state (for example, store buffers) when the
+				processor transitions to a different context, such as whenever a
+				system call is invoked. Alternatively, the hardware may expose
+				instruction(s) that allow software to sanitize microarchitectural
+				state according to the user or system administrator's threat
+				model. These mitigation approaches are similar to those that address CWE-226 ; however, sanitizing microarchitectural state may not be the
+				optimal or best way to mitigate this weakness on every processor
+				design. Effectiveness: Moderate Note: Sanitizing shared state on context transitions
+				may not be practical for all processors, especially when the amount of
+				shared state affected by the weakness is relatively
+				large. Additionally, this technique may not be practical unless there
+				is a synchronous transition between two processor contexts that would
+				allow the affected resource to be sanitized. For example, this
+				technique alone may not suffice to mitigate asynchronous access to a
+				resource that is shared by two SMT threads.
+
+The hardware designer can attempt to prevent transient
+				execution from causing observable discrepancies in specific covert
+				channels. Effectiveness: Limited Note: This technique has many pitfalls. For example,
+							InvisiSpec was an early attempt to mitigate this weakness by blocking
+							""micro-architectural covert and side channels through the
+							multiprocessor data cache hierarchy due to speculative loads"" [ REF-1417 ].
+							Commodity processors and SoCs have many covert and side channels that
+							exist outside of the data cache hierarchy. Even when some of these
+							channels are blocked, others (such as execution ports [ REF-1418 ]) may
+							allow an attacker to infer confidential data. Mitigation strategies
+							that attempt to prevent transient execution from causing observable
+							discrepancies also have other pitfalls, for example, see [ REF-1419 ].
+
+Software architects may design software to enforce strong
+				isolation between different contexts. For example, kernel page table
+				isolation (KPTI) mitigates the Meltdown vulnerability [ REF-1401 ] by
+				separating user-mode page tables from kernel-mode page tables, which
+				prevents user-mode processes from using Meltdown to transiently access
+				kernel memory [ REF-1404 ]. Effectiveness: Limited Note: Isolating different contexts across a process
+				boundary (or another kind of architectural boundary) may only be
+				effective for some weaknesses.
+
+If the weakness is exposed by a single instruction (or a
+				small set of instructions), then the compiler (or JIT, etc.) can be
+				configured to prevent the affected instruction(s) from being
+				generated, and instead generate an alternate sequence of instructions
+				that is not affected by the weakness. Effectiveness: Limited Note: This technique may only be fully effective if it
+				is applied to all software that runs on the system. Also, relatively
+				few observed examples of this weakness have exposed data through only
+				a single instruction.
+
+Use software techniques (including the use of
+				serialization instructions) that are intended to reduce the number of
+				instructions that can be executed transiently after a processor event
+				or misprediction. Effectiveness: Incidental Note: Some transient execution weaknesses can be
+				exploited even if a single instruction is executed transiently after a
+				processor event or mis-prediction. This mitigation strategy has many
+				other pitfalls that prevent it from eliminating this weakness
+				entirely. For example, see [ REF-1389 ].
+
+System software can mitigate this weakness by invoking
+				state-sanitizing operations when switching from one context to
+				another, according to the hardware vendor's recommendations. Effectiveness: Limited Note: This technique may not be able to mitigate
+				weaknesses that arise from resource sharing across SMT threads.
+
+Some systems may allow the user to disable (for example,
+				in the BIOS) sharing of the affected resource. Effectiveness: Limited Note: Disabling resource sharing (for example, by
+				disabling SMT) may result in significant performance overhead.
+
+Some systems may allow the user to disable (for example,
+				in the BIOS) microarchitectural features that allow transient access
+				to architecturally restricted data. Effectiveness: Limited Note: Disabling microarchitectural features such as
+				predictors may result in significant performance overhead.
+
+The hardware vendor may provide a patch to sanitize the
+				affected shared microarchitectural state when the processor
+				transitions to a different context. Effectiveness: Moderate Note: This technique may not be able to mitigate
+				weaknesses that arise from resource sharing across SMT threads.
+
+This kind of patch may not be feasible or
+				implementable for all processors or all weaknesses. Effectiveness: Limited
+
+Processor designers, system software vendors, or other
+				agents may choose to restrict the ability of unprivileged software to
+				access to high-resolution timers that are commonly used to monitor
+				covert channels. Effectiveness: Defense in Depth Note: Specific software algorithms can be used by an attacker to compensate for a lack of a high-resolution time source [ REF-1420 ].","If a weakness can potentially be exploited to
+			  infer data that is accessible inside or outside the current
+			  processor context, then the weakness could map to CWE-1421 and
+			  to another CWE such as CWE-1420 .",N/A
+1423,Exposure of Sensitive Information caused by Shared Microarchitectural Predictor State that Influences Transient Execution,ALLOWED,Base,"Shared microarchitectural predictor state may allow code to influence
+				transient execution across a hardware boundary, potentially exposing
+				data that is accessible beyond the boundary over a covert channel.
+
+Many commodity processors have Instruction Set Architecture (ISA)
+				features that protect software components from one another. These
+				features can include memory segmentation, virtual memory, privilege
+				rings, trusted execution environments, and virtual machines, among
+				others. For example, virtual memory provides each process with its own
+				address space, which prevents processes from accessing each other's
+				private data. Many of these features can be used to form
+				hardware-enforced security boundaries between software components.
+When separate software components (for example, two processes) share
+				microarchitectural predictor state across a hardware boundary, code in
+				one component may be able to influence microarchitectural predictor
+				behavior in another component. If the predictor can cause transient
+				execution, the shared predictor state may allow an attacker to
+				influence transient execution in a victim, and in a manner that could
+				allow the attacker to infer private data from the victim by monitoring
+				observable discrepancies (CWE-203) in a covert channel [REF-1400].
+Predictor state may be shared when the processor transitions from one
+				component to another (for example, when a process makes a system call
+				to enter the kernel). Many commodity processors have features which
+				prevent microarchitectural predictions that occur before a boundary
+				from influencing predictions that occur after the boundary.
+Predictor state may also be shared between hardware threads, for
+				example, sibling hardware threads on a processor that supports
+				simultaneous multithreading (SMT). This sharing may be benign if the
+				hardware threads are simultaneously executing in the same software
+				component, or it could expose a weakness if one sibling is a malicious
+				software component, and the other sibling is a victim software
+				component. Processors that share microarchitectural predictors between
+				hardware threads may have features which prevent microarchitectural
+				predictions that occur on one hardware thread from influencing
+				predictions that occur on another hardware thread.
+Features that restrict predictor state sharing across transitions or
+				between hardware threads may be always-on, on by default, or may
+				require opt-in from software.","Read Memory
+Scope: Confidentiality Likelihood: Medium","The hardware designer can attempt to prevent transient
+					execution from causing observable discrepancies in specific covert
+					channels.
+
+Hardware designers may choose to use microarchitectural
+					bits to tag predictor entries. For example, each predictor entry may
+					be tagged with a kernel-mode bit which, when set, indicates that the
+					predictor entry was created in kernel mode. The processor can use this
+					bit to enforce that predictions in the current mode must have been
+					trained in the current mode. This can prevent malicious cross-mode
+					training, such as when user-mode software attempts to create predictor
+					entries that influence transient execution in the kernel. Predictor
+					entry tags can also be used to associate each predictor entry with the
+					SMT thread that created it, and thus the processor can enforce that
+					each predictor entry can only be used by the SMT thread that created
+					it. This can prevent an SMT thread from using predictor entries
+					crafted by a malicious sibling SMT thread. Effectiveness: Moderate Note: Tagging can be highly effective for predictor
+					state that is comprised of discrete elements, such as an array of
+					recently visited branch targets. Predictor state can also have
+					different representations that are not conducive to tagging. For
+					example, some processors keep a compressed digest of branch history
+					which does not contain discrete elements that can be individually
+					tagged.
+
+Hardware designers may choose to sanitize
+					microarchitectural predictor state (for example, branch prediction
+					history) when the processor transitions to a different context, for
+					example, whenever a system call is invoked. Alternatively, the
+					hardware may expose instruction(s) that allow software to sanitize
+					predictor state according to the user's threat model. For example,
+					this can allow operating system software to sanitize predictor state
+					when performing a context switch from one process to another. Effectiveness: Moderate Note: This technique may not be able to mitigate
+					weaknesses that arise from predictor state that is shared across SMT
+					threads. Sanitizing predictor state on context switches may also
+					negatively impact performance, either by removing predictor entries
+					that could be reused when returning to the previous context, or by
+					slowing down the context switch itself.
+
+System software can mitigate this weakness by invoking
+					predictor-state-sanitizing operations (for example, the indirect
+					branch prediction barrier on Intel x86) when switching from one
+					context to another, according to the hardware vendor's
+					recommendations. Effectiveness: Moderate Note: This technique may not be able to mitigate
+					weaknesses that arise from predictor state shared across SMT
+					threads. Sanitizing predictor state may also negatively impact
+					performance in some circumstances.
+
+If the weakness is exposed by a single instruction (or a
+					small set of instructions), then the compiler (or JIT, etc.) can be
+					configured to prevent the affected instruction(s) from being
+					generated. One prominent example of this mitigation is retpoline
+					([ REF-1414 ]). Effectiveness: Limited Note: This technique is only effective for software
+					that is compiled with this mitigation. Additionally, an alternate
+					instruction sequence may mitigate the weakness on some processors but
+					not others, even when the processors share the same ISA. For example,
+					retpoline has been documented as effective on some x86 processors, but
+					not fully effective on other x86 processors.
+
+Use control-flow integrity (CFI) techniques to constrain
+					the behavior of instructions that redirect the instruction pointer,
+					such as indirect branch instructions. Effectiveness: Moderate Note: Some CFI techniques may not be able to constrain
+					transient execution, even though they are effective at constraining
+					architectural execution. Or they may be able to provide some
+					additional protection against a transient execution weakness, but
+					without comprehensively mitigating the weakness. For example,
+					Clang-CFI provides strong architectural CFI properties and can make
+					some transient execution weaknesses more difficult to exploit [ REF-1398 ].
+
+Use software techniques (including the use of
+					serialization instructions) that are intended to reduce the number of
+					instructions that can be executed transiently after a processor event
+					or misprediction. Effectiveness: Incidental Note: Some transient execution weaknesses can be
+					exploited even if a single instruction is executed transiently after a
+					processor event or mis-prediction. This mitigation strategy has many
+					other pitfalls that prevent it from eliminating this weakness
+					entirely. For example, see [ REF-1389 ].
+
+Some systems may allow the user to disable predictor
+					sharing. For example, this could be a BIOS configuration, or a
+					model-specific register (MSR) that can be configured by the operating
+					system or virtual machine monitor. Effectiveness: Moderate Note: Disabling predictor sharing can negatively impact
+					performance for some workloads that benefit from shared predictor
+					state.
+
+The hardware vendor may provide a patch to, for example,
+					sanitize predictor state when the processor transitions to a different
+					context, or to prevent predictor entries from being shared across SMT
+					threads. A patch may also introduce new ISA that allows software to
+					toggle a mitigation. Effectiveness: Moderate Note: This mitigation may only be fully effective if
+					the patch prevents predictor sharing across all contexts that are
+					affected by the weakness. Additionally, sanitizing predictor state
+					and/or preventing shared predictor state can negatively impact
+					performance in some circumstances.
+
+If a hardware feature can allow microarchitectural
+					predictor state to be shared between contexts, SMT threads, or other
+					architecturally defined boundaries, the hardware designer may opt to
+					disclose this behavior in architecture documentation. This
+					documentation can inform users about potential consequences and
+					effective mitigations. Effectiveness: High
+
+Processor designers, system software vendors, or other
+					agents may choose to restrict the ability of unprivileged software to
+					access to high-resolution timers that are commonly used to monitor
+					covert channels.","Use only when the weakness allows code in one processor context to influence the predictions of code in another processor context via predictor state that is shared between the two contexts. For example, Branch Target Injection, an instance of CWE-1423 , can be mitigated by tagging each indirect branch predictor entry according to the processor context in which the entry was created, thus preventing entries created in one context from being used in a different context. However, the mitigated indirect branch predictor can still expose different weaknesses where malicious predictor entries created in one context are used later in the same context (context tags cannot prevent this). One such example is Intra-mode Branch Target Injection. Weaknesses of this sort can map to CWE-1420 .",N/A
+1431,Driving Intermediate Cryptographic State/Results to Hardware Module Outputs,ALLOWED,Base,"The product uses a hardware module implementing a cryptographic
+		  algorithm that writes sensitive information about the intermediate
+		  state or results of its cryptographic operations via one of its output
+		  wires (typically the output port containing the final result).","Read Memory; Read Application Data
+Scope: Confidentiality Likelihood: Unknown Mathematically sound cryptographic algorithms rely on their
+			    correct implementation for security. These assumptions might break when a
+			    hardware crypto module leaks intermediate encryption states or results
+			    such that they can be observed by an adversary. If intermediate state
+			    is observed, it might be possible for an attacker to identify the
+			    secrets used in the cryptographic operation.","Designers/developers
+			    should add or modify existing control flow
+			    logic along any data flow paths that
+			    connect ""sources"" (signals with
+			    intermediate cryptographic state/results)
+			    with ""sinks"" (hardware module outputs and
+			    other signals outside of trusted
+			    cryptographic zone). The control flow
+			    logic should only allow cryptographic
+			    results to be driven to ""sinks"" when
+			    appropriate conditions are satisfied
+			    (typically when the final result for a
+			    cryptographic operation has been
+			    generated). When the appropriate
+			    conditions are not satisfied (i.e., before
+			    or during a cryptographic operation), the
+			    control flow logic should drive a safe
+			    default value to
+			    ""sinks"". Effectiveness: High
+
+Designers/developers
+			    should add or modify existing control flow
+			    logic along any data flow paths that
+			    connect ""sources"" (signals with
+			    intermediate cryptographic state/results)
+			    with ""sinks"" (hardware module outputs and
+			    other signals outside of trusted
+			    cryptographic zone). The control flow
+			    logic should only allow cryptographic
+			    results to be driven to ""sinks"" when
+			    appropriate conditions are satisfied
+			    (typically when the final result for a
+			    cryptographic operation has been
+			    generated). When the appropriate
+			    conditions are not satisfied (i.e., before
+			    or during a cryptographic operation), the
+			    control flow logic should drive a safe
+			    default value to
+			    ""sinks"". Effectiveness: High",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A

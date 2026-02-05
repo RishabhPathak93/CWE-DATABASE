@@ -1,0 +1,599 @@
+ID,Title,Vulnerability_Mapping,Abstraction,Description,Impact,Mitigation,Comments,Alternate_Terms
+5,J2EE Misconfiguration: Data Transmission Without Encryption,ALLOWED,Variant,Information sent over a network can be compromised while in transit. An attacker may be able to read or modify the contents if the data are sent in plaintext or are weakly encrypted.,"Read Application Data
+Scope: Confidentiality
+
+Modify Application Data
+Scope: Integrity",The product configuration should ensure that SSL or an encryption mechanism of equivalent strength and vetted reputation is used for all access-controlled pages.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+6,J2EE Misconfiguration: Insufficient Session-ID Length,ALLOWED,Variant,"The J2EE application is configured to use an insufficient session ID length.
+
+If an attacker can guess or steal a session ID, then they may be able to take over the user's session (called session hijacking). The number of possible session IDs increases with increased session ID length, making it more difficult to guess or steal a session ID.","Gain Privileges or Assume Identity
+Scope: Access Control If an attacker can guess an authenticated user's session identifier, they can take over the user's session.","Session identifiers should be at least 128 bits long to prevent brute-force session guessing. A shorter session identifier leaves the application open to brute-force session guessing attacks.
+----------------
+A lower bound on the number of valid session identifiers that are available to be guessed is the number of users that are active on a site at any given moment. However, any users that abandon their sessions without logging out will increase this number. (This is one of many good reasons to have a short inactive session timeout.) With a 64 bit session identifier, assume 32 bits of entropy. For a large web site, assume that the attacker can try 1,000 guesses per second and that there are 10,000 valid session identifiers at any given moment. Given these assumptions, the expected time for an attacker to successfully guess a valid session identifier is less than 4 minutes. Now assume a 128 bit session identifier that provides 64 bits of entropy. With a very large web site, an attacker might try 10,000 guesses per second with 100,000 valid session identifiers available to be guessed. Given these assumptions, the expected time for an attacker to successfully guess a valid session identifier is greater than 292 years.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+7,J2EE Misconfiguration: Missing Custom Error Page,ALLOWED,Variant,"The default error page of a web application should not display sensitive information about the product.
+
+A Web application must define a default error page for 4xx errors (e.g. 404), 5xx (e.g. 500) errors and catch java.lang.Throwable exceptions to prevent attackers from mining information from the application container's built-in error response.
+When an attacker explores a web site looking for vulnerabilities, the amount of information that the site provides is crucial to the eventual success or failure of any attempted attacks.","Read Application Data
+Scope: Confidentiality A stack trace might show the attacker a malformed SQL query string, the type of database being used, and the version of the application container. This information enables the attacker to target known vulnerabilities in these components.","Handle exceptions appropriately in source code.
+----------------
+Always define appropriate error pages. The application configuration should specify a default error page in order to guarantee that the application will never leak error messages to an attacker. Handling standard HTTP error codes is useful and user-friendly in addition to being a good security practice, and a good configuration will also define a last-chance error handler that catches any exception that could possibly be thrown by the application.
+----------------
+Do not attempt to process an error or attempt to mask it.
+----------------
+Verify return values are correct and do not supply sensitive information about the system.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+8,J2EE Misconfiguration: Entity Bean Declared Remote,ALLOWED,Variant,"When an application exposes a remote interface for an entity bean, it might also expose methods that get or set the bean's data. These methods could be leveraged to read sensitive information, or to change data in ways that violate the application's expectations, potentially leading to other vulnerabilities.","Read Application Data; Modify Application Data
+Scope: Confidentiality, Integrity","Declare Java beans ""local"" when possible. When a bean must be remotely accessible, make sure that sensitive information is not exposed, and ensure that the application logic performs appropriate validation of any data that might be modified by an attacker.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+9,J2EE Misconfiguration: Weak Access Permissions for EJB Methods,ALLOWED,Variant,"If elevated access rights are assigned to EJB methods, then an attacker can take advantage of the permissions to exploit the product.
+
+If the EJB deployment descriptor contains one or more method permissions that grant access to the special ANYONE role, it indicates that access control for the application has not been fully thought through or that the application is structured in such a way that reasonable access control restrictions are impossible.","Other
+Scope: Other",Follow the principle of least privilege when assigning access rights to EJB methods. Permission to invoke EJB methods should not be granted to the ANYONE role.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+95,Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection'),ALLOWED,Variant,"The product receives input from an upstream component, but it does not neutralize or incorrectly neutralizes code syntax before using the input in a dynamic evaluation call (e.g. ""eval"").","Read Files or Directories; Read Application Data
+Scope: Confidentiality The injected code could access restricted data / files.
+
+Bypass Protection Mechanism
+Scope: Access Control In some cases, injectable code controls authentication; this may lead to a remote vulnerability.
+
+Gain Privileges or Assume Identity
+Scope: Access Control Injected code can access resources that the attacker is directly prevented from accessing.
+
+Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability, Other Code injection attacks can lead to loss of data integrity in nearly all cases as the control-plane data injected is always incidental to data recall or writing. Additionally, code injection can often result in the execution of arbitrary code or at least modify what code can be executed.
+
+Hide Activities
+Scope: Non-Repudiation Often the actions performed by injected control code are unlogged.","If possible, refactor your code so that it does not need to use eval() at all.
+----------------
+Strategy: Input Validation Assume all input is malicious. Use an ""accept known good"" input validation strategy, i.e., use a list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does. When performing input validation, consider all potentially relevant properties, including length, type of input, the full range of acceptable values, missing or extra inputs, syntax, consistency across related fields, and conformance to business rules. As an example of business rule logic, ""boat"" may be syntactically valid because it only contains alphanumeric characters, but it is not valid if the input is only expected to contain colors such as ""red"" or ""blue."" Do not rely exclusively on looking for malicious or malformed inputs.  This is likely to miss at least one undesirable input, especially if the code's environment changes. This can give attackers enough room to bypass the intended validation. However, denylists can be useful for detecting potential attacks or determining which inputs are so malformed that they should be rejected outright.
+----------------
+Inputs should be decoded and canonicalized to the application's current internal representation before being validated ( CWE-180 , CWE-181 ). Make sure that your application does not inadvertently decode the same input twice ( CWE-174 ). Such errors could be used to bypass allowlist schemes by introducing dangerous inputs after they have been checked. Use libraries such as the OWASP ESAPI Canonicalization control. Consider performing repeated canonicalization until your input does not change any more. This will avoid double-decoding and similar scenarios, but it might inadvertently modify inputs that are allowed to contain properly-encoded dangerous content.
+----------------
+For Python programs, it is frequently encouraged to use the ast.literal_eval() function instead of eval, since it is intentionally designed to avoid executing code. However, an adversary could still cause excessive memory or stack consumption via deeply nested structures [ REF-1372 ], so the python documentation discourages use of ast.literal_eval() on untrusted data [ REF-1373 ]. Effectiveness: Discouraged Common Practice",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+102,Struts: Duplicate Validation Forms,ALLOWED,Variant,"The product uses multiple validation forms with the same name, which might cause the Struts Validator to validate a form that the programmer does not expect.
+
+If two validation forms have the same name, the Struts Validator arbitrarily chooses one of the forms to use for input validation and discards the other. This decision might not correspond to the programmer's expectations, possibly leading to resultant weaknesses. Moreover, it indicates that the validation logic is not up-to-date, and can indicate that other, more subtle validation errors are present.","Unexpected State
+Scope: Integrity","The DTD or schema validation will not catch the duplicate occurrence of the same form name. To find the issue in the implementation, manual checks or automated static analysis could be applied to the xml configuration files.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+103,Struts: Incomplete validate() Method Definition,ALLOWED,Variant,"The product has a validator form that either does not define a validate() method, or defines a validate() method but does not call super.validate().","Unexpected State; Varies by Context
+Scope: Other If the code does not call super.validate(), the Validation Framework cannot check the contents of the form against a validation form. In other words, the validation framework will be disabled for the given form. Disabling the validation framework for a form exposes the product to numerous types of attacks.
+
+Other
+Scope: Confidentiality, Integrity, Availability, Other Although J2EE applications are not generally susceptible to memory corruption attacks, if a J2EE application interfaces with native code that does not perform array bounds checking, an attacker may be able to use an input validation mistake in the J2EE application to launch a buffer overflow attack.",Implement the validate() method and call super.validate() within that method.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+104,Struts: Form Bean Does Not Extend Validation Class,ALLOWED,Variant,"If a form bean does not extend an ActionForm subclass of the Validator framework, it can expose the application to other weaknesses related to insufficient input validation.","Other
+Scope: Other Bypassing the validation framework for a form exposes the application to numerous types of attacks. Unchecked input is an important component of vulnerabilities like cross-site scripting, process control, and SQL injection.
+
+Other
+Scope: Confidentiality, Integrity, Availability, Other Although J2EE applications are not generally susceptible to memory corruption attacks, if a J2EE application interfaces with native code that does not perform array bounds checking, an attacker may be able to use an input validation mistake in the J2EE application to launch a buffer overflow attack.",Ensure that all forms extend one of the Validation Classes.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+105,Struts: Form Field Without Validator,ALLOWED,Variant,"The product has a form field that is not validated by a corresponding validation form, which can introduce other weaknesses related to insufficient input validation.
+
+Omitting validation for even a single input field may give attackers the leeway they need to compromise the product. Although J2EE applications are not generally susceptible to memory corruption attacks, if a J2EE application interfaces with native code that does not perform array bounds checking, an attacker may be able to use an input validation mistake in the J2EE application to launch a buffer overflow attack.","Unexpected State
+Scope: Integrity
+
+Bypass Protection Mechanism
+Scope: Integrity If unused fields are not validated, shared business logic in an action may allow attackers to bypass the validation checks that are performed for other uses of the form.","Validate all form fields. If a field is unused, it is still important to constrain it so that it is empty or undefined.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+106,Struts: Plug-in Framework not in Use,ALLOWED,Variant,"When an application does not use an input validation framework such as the Struts Validator, there is a greater risk of introducing weaknesses related to insufficient input validation.
+
+Unchecked input is the leading cause of vulnerabilities in J2EE applications. Unchecked input leads to cross-site scripting, process control, and SQL injection vulnerabilities, among others.
+Although J2EE applications are not generally susceptible to memory corruption attacks, if a J2EE application interfaces with native code that does not perform array bounds checking, an attacker may be able to use an input validation mistake in the J2EE application to launch a buffer overflow attack.","Unexpected State
+Scope: Integrity","Strategy: Input Validation Use an input validation framework such as Struts.
+----------------
+Strategy: Libraries or Frameworks Use an input validation framework such as Struts.
+----------------
+Strategy: Input Validation Use the Struts Validator to validate all program input before it is processed by the application. Ensure that there are no holes in the configuration of the Struts Validator. Example uses of the validator include checking to ensure that: Phone number fields contain only valid characters in phone numbers Boolean values are only ""T"" or ""F"" Free-form strings are of a reasonable length and composition
+----------------
+Strategy: Libraries or Frameworks Use the Struts Validator to validate all program input before it is processed by the application. Ensure that there are no holes in the configuration of the Struts Validator. Example uses of the validator include checking to ensure that: Phone number fields contain only valid characters in phone numbers Boolean values are only ""T"" or ""F"" Free-form strings are of a reasonable length and composition",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+107,Struts: Unused Validation Form,ALLOWED,Variant,An unused validation form indicates that validation logic is not up-to-date.,"Quality Degradation
+Scope: Other",Remove the unused Validation Form from the validation.xml file.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+108,Struts: Unvalidated Action Form,ALLOWED,Variant,"Every Action Form must have a corresponding validation form.
+
+If a Struts Action Form Mapping specifies a form, it must have a validation form defined under the Struts Validator.","Other
+Scope: Other If an action form mapping does not have a validation form defined, it may be vulnerable to a number of attacks that rely on unchecked input. Unchecked input is the root cause of some of today's worst and most common software security problems. Cross-site scripting, SQL injection, and process control vulnerabilities all stem from incomplete or absent input validation.
+
+Other
+Scope: Confidentiality, Integrity, Availability, Other Although J2EE applications are not generally susceptible to memory corruption attacks, if a J2EE application interfaces with native code that does not perform array bounds checking, an attacker may be able to use an input validation mistake in the J2EE application to launch a buffer overflow attack.","Strategy: Input Validation Map every Action Form to a corresponding validation form. An action or a form may perform validation in other ways, but the Struts Validator provides an excellent way to verify that all input receives at least a basic level of validation. Without this approach, it is difficult, and often impossible, to establish with a high level of confidence that all input is validated.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+109,Struts: Validator Turned Off,ALLOWED,Variant,"Automatic filtering via a Struts bean has been turned off, which disables the Struts Validator and custom validation logic. This exposes the application to other weaknesses related to insufficient input validation.","Bypass Protection Mechanism
+Scope: Access Control",Ensure that an action form mapping enables validation. Set the validate field to true.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+110,Struts: Validator Without Form Field,ALLOWED,Variant,"Validation fields that do not appear in forms they are associated with indicate that the validation logic is out of date.
+
+It is easy for developers to forget to update validation logic when they make changes to an ActionForm class. One indication that validation logic is not being properly maintained is inconsistencies between the action form and the validation form.
+Although J2EE applications are not generally susceptible to memory corruption attacks, if a J2EE application interfaces with native code that does not perform array bounds checking, an attacker may be able to use an input validation mistake in the J2EE application to launch a buffer overflow attack.","Other
+Scope: Other It is critically important that validation logic be maintained and kept in sync with the rest of the application. Unchecked input is the root cause of some of today's worst and most common software security problems. Cross-site scripting, SQL injection, and process control vulnerabilities all stem from incomplete or absent input validation.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+111,Direct Use of Unsafe JNI,ALLOWED,Variant,"When a Java application uses the Java Native Interface (JNI) to call code written in another programming language, it can expose the application to weaknesses in that code, even if those weaknesses cannot occur in Java.
+
+Many safety features that programmers may take for granted do not apply for native code, so you must carefully review all such code for potential problems. The languages used to implement native code may be more susceptible to buffer overflows and other attacks. Native code is unprotected by the security features enforced by the runtime environment, such as strong typing and array bounds checking.","Bypass Protection Mechanism
+Scope: Access Control","Implement error handling around the JNI call.
+----------------
+Strategy: Refactoring Do not use JNI calls if you don't trust the native library.
+----------------
+Strategy: Refactoring Be reluctant to use JNI calls. A Java API equivalent may exist.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+191,Integer Underflow (Wrap or Wraparound),ALLOWED,Base,"The product subtracts one value from another, such that the result is less than the minimum allowable integer value, which produces a value that is not equal to the correct result.
+
+This can happen in signed and unsigned cases.","DoS: Crash, Exit, or Restart; DoS: Resource Consumption (CPU); DoS: Resource Consumption (Memory); DoS: Instability
+Scope: Availability This weakness will generally lead to undefined behavior and therefore crashes. In the case of overflows involving loop index variables, the likelihood of infinite loops is also high.
+
+Modify Memory
+Scope: Integrity If the value in question is important to data (as opposed to flow), simple data corruption has occurred. Also, if the wrap around results in other conditions such as buffer overflows, further memory corruption may occur.
+
+Execute Unauthorized Code or Commands; Bypass Protection Mechanism
+Scope: Confidentiality, Availability, Access Control This weakness can sometimes trigger buffer overflows which can be used to execute arbitrary code. This is usually outside the scope of a program's implicit security policy.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,"Integer underflow
+                                    
+
+
+""Integer underflow"" is sometimes used to identify signedness errors in which an originally positive number becomes negative as a result of subtraction. However, there are cases of bad subtraction in which unsigned integers are involved, so it's not always a signedness issue.
+""Integer underflow"" is occasionally used to describe array index errors in which the index is negative."
+192,Integer Coercion Error,ALLOWED,Variant,"Integer coercion refers to a set of flaws pertaining to the type casting, extension, or truncation of primitive data types.
+
+Several flaws fall under the category of integer coercion errors. For the most part, these errors in and of themselves result only in availability and data integrity issues. However, in some circumstances, they may result in other, more complicated security related flaws, such as buffer overflow conditions.","DoS: Resource Consumption (CPU); DoS: Resource Consumption (Memory); DoS: Crash, Exit, or Restart
+Scope: Availability Integer coercion often leads to undefined states of execution resulting in infinite loops or crashes.
+
+Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability In some cases, integer coercion errors can lead to exploitable buffer overflow conditions, resulting in the execution of arbitrary code.
+
+Other
+Scope: Integrity, Other Integer coercion errors result in an incorrect value being stored for the variable in question.","A language which throws exceptions on ambiguous data casts might be chosen.
+----------------
+Design objects and program flow such that multiple or complex casts are unnecessary
+----------------
+Ensure that any data type casting that you must used is entirely understood in order to reduce the plausibility of error in use.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+197,Numeric Truncation Error,ALLOWED,Base,"Truncation errors occur when a primitive is cast to a primitive of a smaller size and data is lost in the conversion.
+
+When a primitive is cast to a smaller primitive, the high order bits of the large value are lost in the conversion, potentially resulting in an unexpected value that is not equal to the original value. This value may be required as an index into a buffer, a loop iterator, or simply necessary state data. In any case, the value cannot be trusted and the system will be in an undefined state. While this method may be employed viably to isolate the low bits of a value, this usage is rare, and truncation usually implies that an implementation error has occurred.","Modify Memory
+Scope: Integrity The true value of the data is lost and corrupted data is used.","Ensure that no casts, implicit or explicit, take place that move from a larger size primitive or a smaller size primitive.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+209,Generation of Error Message Containing Sensitive Information,ALLOWED,Base,"The product generates an error message that includes sensitive information about its environment, users, or associated data.","Read Application Data
+Scope: Confidentiality Often this will either reveal sensitive information which may be used to launch another, more focused attack  or disclose private information stored in the server. For example, an attempt to exploit a path traversal weakness ( CWE-22 ) might yield the full pathname of the installed application. In turn, this could be used to select the proper number of "".."" sequences to navigate to the targeted file. An attack using SQL injection ( CWE-89 ) might not initially succeed, but an error message could reveal the malformed query, which would expose query logic and possibly even passwords or other sensitive information used within the query.","Ensure that error messages only contain minimal details that are useful to the intended audience and no one else. The messages need to strike the balance between being too cryptic (which can confuse users) or being too detailed (which may reveal more than intended). The messages should not reveal the methods that were used to determine the error. Attackers can use detailed information to refine or optimize their original attack, thereby increasing their chances of success. If errors must be captured in some detail, record them in log messages, but consider what could occur if the log messages can be viewed by attackers. Highly sensitive information such as passwords should never be saved to log files. Avoid inconsistent messaging that might accidentally tip off an attacker about internal state, such as whether a user account exists or not.
+----------------
+Handle exceptions internally and do not display errors containing potentially sensitive information to a user.
+----------------
+Strategy: Attack Surface Reduction Use naming conventions and strong types to make it easier to spot when sensitive data is being used. When creating structures, objects, or other complex entities, separate the sensitive and non-sensitive data as much as possible. Effectiveness: Defense in Depth Note: This makes it easier to spot places in the code where data is being used that is unencrypted.
+----------------
+Strategy: Compilation or Build Hardening Debugging information should not make its way into a production release.
+----------------
+Strategy: Environment Hardening Debugging information should not make its way into a production release.
+----------------
+Where available, configure the environment to use less verbose error messages. For example, in PHP, disable the display_errors setting during configuration, or at runtime using the error_reporting() function.
+----------------
+Create default error pages or messages that do not leak any information.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+245,J2EE Bad Practices: Direct Management of Connections,ALLOWED,Variant,"The J2EE application directly manages connections, instead of using the container's connection management facilities.
+
+The J2EE standard forbids the direct management of connections. It requires that applications use the container's resource management facilities to obtain connections to resources. Every major web application container provides pooled database connection management as part of its resource management framework. Duplicating this functionality in an application is difficult and error prone, which is part of the reason it is forbidden under the J2EE standard.","Quality Degradation
+Scope: Other",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+246,J2EE Bad Practices: Direct Use of Sockets,ALLOWED,Variant,"The J2EE application directly uses sockets instead of using framework method calls.
+
+The J2EE standard permits the use of sockets only for the purpose of communication with legacy systems when no higher-level protocol is available. Authoring your own communication protocol requires wrestling with difficult security issues.
+Without significant scrutiny by a security expert, chances are good that a custom communication protocol will suffer from security problems. Many of the same issues apply to a custom implementation of a standard protocol. While there are usually more resources available that address security concerns related to implementing a standard protocol, these resources are also available to attackers.","Quality Degradation
+Scope: Other",Use framework method calls instead of using sockets directly.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+248,Uncaught Exception,ALLOWED,Base,"An exception is thrown from a function, but it is not caught.
+
+When an exception is not caught, it may cause the program to crash or expose sensitive information.","DoS: Crash, Exit, or Restart; Read Application Data
+Scope: Availability, Confidentiality An uncaught exception could cause the system to be placed in a state that could lead to a crash, exposure of sensitive information or other unintended behaviors.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+362,Concurrent Execution using Shared Resource with Improper Synchronization ('Race Condition'),ALLOWED,Class,"The product contains a concurrent code sequence that requires temporary, exclusive access to a shared resource, but a timing window exists in which the shared resource can be modified by another code sequence operating concurrently.
+
+A race condition occurs within concurrent environments, and it is effectively a property of a code sequence. Depending on the context, a code sequence may be in the form of a function call, a small number of instructions, a series of program invocations, etc.
+A race condition violates these properties, which are closely related:
+
+Exclusivity - the code sequence is given exclusive access to the shared resource, i.e., no other code sequence can modify properties of the shared resource before the original sequence has completed execution.
+Atomicity - the code sequence is behaviorally atomic, i.e., no other thread or process can concurrently execute the same sequence of instructions (or a subset) against the same resource.
+
+A race condition exists when an ""interfering code sequence"" can still access the shared resource, violating exclusivity.
+The interfering code sequence could be ""trusted"" or ""untrusted."" A trusted interfering code sequence occurs within the product; it cannot be modified by the attacker, and it can only be invoked indirectly. An untrusted interfering code sequence can be authored directly by the attacker, and typically it is external to the vulnerable product.","DoS: Resource Consumption (CPU); DoS: Resource Consumption (Memory); DoS: Resource Consumption (Other)
+Scope: Availability When a race condition makes it possible to bypass a resource cleanup routine or trigger multiple initialization routines, it may lead to resource exhaustion.
+
+DoS: Crash, Exit, or Restart; DoS: Instability
+Scope: Availability When a race condition allows multiple control flows to access a resource simultaneously, it might lead the product(s) into unexpected states, possibly resulting in a crash.
+
+Read Files or Directories; Read Application Data
+Scope: Confidentiality, Integrity When a race condition is combined with predictable resource names and loose permissions, it may be possible for an attacker to overwrite or access confidential data ( CWE-59 ).
+
+Execute Unauthorized Code or Commands; Gain Privileges or Assume Identity; Bypass Protection Mechanism
+Scope: Access Control This can have security implications when the expected synchronization is in security-critical code, such as recording whether a user is authenticated or modifying important state information that should not be influenced by an outsider.","In languages that support it, use synchronization primitives. Only wrap these around critical code to minimize the impact on performance.
+----------------
+Use thread-safe capabilities such as the data access abstraction in Spring.
+----------------
+Minimize the usage of shared resources in order to remove as much complexity as possible from the control flow and to reduce the likelihood of unexpected conditions occurring. Additionally, this will minimize the amount of synchronization necessary and may even help to reduce the likelihood of a denial of service where an attacker may be able to repeatedly trigger a critical section ( CWE-400 ).
+----------------
+When using multithreading and operating on shared variables, only use thread-safe functions.
+----------------
+Use atomic operations on shared variables. Be wary of innocent-looking constructs such as ""x++"". This may appear atomic at the code layer, but it is actually non-atomic at the instruction layer, since it involves a read, followed by a computation, followed by a write.
+----------------
+Use a mutex if available, but be sure to avoid related weaknesses such as CWE-412 .
+----------------
+Avoid double-checked locking ( CWE-609 ) and other implementation errors that arise when trying to avoid the overhead of synchronization.
+----------------
+Disable interrupts or signals over critical parts of the code, but also make sure that the code does not go into a large or infinite loop.
+----------------
+Use the volatile type modifier for critical variables to avoid unexpected compiler optimization or reordering. This does not necessarily solve the synchronization problem, but it can help.
+----------------
+Strategy: Environment Hardening Run your code using the lowest privileges that are required to accomplish the necessary tasks [ REF-76 ]. If possible, create isolated accounts with limited privileges that are only used for a single task. That way, a successful attack will not immediately give the attacker access to the rest of the software or its environment. For example, database applications rarely need to run as the database administrator, especially in day-to-day operations.",Examine children of this entry to see if there is a better fit,Race Condition
+366,Race Condition within a Thread,ALLOWED,Base,"If two threads of execution use a resource simultaneously, there exists the possibility that resources may be used while invalid, in turn making the state of execution undefined.","Alter Execution Logic; Unexpected State
+Scope: Integrity, Other The main problem is that -- if a lock is overcome -- data could be altered in a bad state.","Use locking functionality. This is the recommended solution. Implement some form of locking mechanism around code which alters or reads persistent data in a multithreaded environment.
+----------------
+Create resource-locking validation checks. If no inherent locking mechanisms exist, use flags and signals to enforce your own blocking scheme when resources are being used by other threads of execution.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+374,Passing Mutable Objects to an Untrusted Method,ALLOWED,Base,"The product sends non-cloned mutable data as an argument to a method or function.
+
+The function or method that has been called can alter or delete the mutable data. This could violate assumptions that the calling function has made about its state. In situations where unknown code is called with references to mutable data, this external code could make changes to the data sent. If this data was not previously cloned, the modified data might not be valid in the context of execution.","Modify Memory
+Scope: Integrity Potentially data could be tampered with by another function which should not have been tampered with.","Pass in data which should not be altered as constant or immutable.
+----------------
+Clone all mutable data before passing it into an external function . This is the preferred mitigation. This way, regardless of what changes are made to the data, a valid copy is retained for use by the class.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+375,Returning a Mutable Object to an Untrusted Caller,ALLOWED,Base,"Sending non-cloned mutable data as a return value may result in that data being altered or deleted by the calling function.
+
+In situations where functions return references to mutable data, it is possible that the external code which called the function may make changes to the data sent. If this data was not previously cloned, the class will then be using modified data which may violate assumptions about its internal state.","Modify Memory
+Scope: Access Control, Integrity Potentially data could be tampered with by another function which should not have been tampered with.","Declare returned data which should not be altered as constant or immutable.
+----------------
+Clone all mutable data before returning references to it. This is the preferred mitigation. This way, regardless of what changes are made to the data, a valid copy is retained for use by the class.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+382,J2EE Bad Practices: Use of System.exit(),ALLOWED,Variant,"A J2EE application uses System.exit(), which also shuts down its container.
+
+It is never a good idea for a web application to attempt to shut down the application container. Access to a function that can shut down the application is an avenue for Denial of Service (DoS) attacks.","DoS: Crash, Exit, or Restart
+Scope: Availability","Strategy: Separation of Privilege The shutdown function should be a privileged function available only to a properly authorized administrative user
+----------------
+Web applications should not call methods that cause the virtual machine to exit, such as System.exit()
+----------------
+Web applications should also not throw any Throwables to the application server as this may adversely affect the container.
+----------------
+Non-web applications may have a main() method that contains a System.exit(), but generally should not call System.exit() from other locations in the code",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+383,J2EE Bad Practices: Direct Use of Threads,ALLOWED,Variant,"Thread management in a Web application is forbidden in some circumstances and is always highly error prone.
+
+Thread management in a web application is forbidden by the J2EE standard in some circumstances and is always highly error prone. Managing threads is difficult and is likely to interfere in unpredictable ways with the behavior of the application container. Even without interfering with the container, thread management usually leads to bugs that are hard to detect and diagnose like deadlock, race conditions, and other synchronization errors.","Quality Degradation
+Scope: Other","For EJB, use framework approaches for parallel execution, instead of using threads.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+395,Use of NullPointerException Catch to Detect NULL Pointer Dereference,ALLOWED,Base,"Catching NullPointerException should not be used as an alternative to programmatic checks to prevent dereferencing a null pointer.
+
+Programmers typically catch NullPointerException under three circumstances:
+
+The program contains a null pointer dereference. Catching the resulting exception was easier than fixing the underlying problem.
+The program explicitly throws a NullPointerException to signal an error condition.
+The code is part of a test harness that supplies unexpected input to the classes under test.
+
+Of these three circumstances, only the last is acceptable.","DoS: Resource Consumption (CPU)
+Scope: Availability",Do not extensively rely on catching exceptions (especially for validating user input) to handle errors. Handling exceptions can decrease the performance of an application.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+396,Declaration of Catch for Generic Exception,ALLOWED,Base,"Catching overly broad exceptions promotes complex error handling code that is more likely to contain security vulnerabilities.
+
+Multiple catch blocks can get ugly and repetitive, but ""condensing"" catch blocks by catching a high-level class like Exception can obscure exceptions that deserve special treatment or that should not be caught at this point in the program. Catching an overly broad exception essentially defeats the purpose of a language's typed exceptions, and can become particularly dangerous if the program grows and begins to throw new types of exceptions. The new exception types will not receive any attention.","Hide Activities
+Scope: Non-Repudiation, Other A generic exception can hide details about unexpected adversary activities by making it difficult to properly troubleshoot error conditions during execution.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+397,Declaration of Throws for Generic Exception,ALLOWED,Base,"The product throws or raises an overly broad exceptions that can hide important details and produce inappropriate responses to certain conditions.
+
+Declaring a method to throw Exception or Throwable promotes generic error handling procedures that make it difficult for callers to perform proper error handling and error recovery. For example, Java's exception mechanism makes it easy for callers to anticipate what can go wrong and write code to handle each specific exceptional circumstance. Declaring that a method throws a generic form of exception defeats this system.","Hide Activities; Alter Execution Logic
+Scope: Non-Repudiation, Other Throwing a generic exception can hide details about unexpected adversary activities by making it difficult to properly troubleshoot error conditions during execution.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+460,Improper Cleanup on Thrown Exception,ALLOWED,Base,"The product does not clean up its state or incorrectly cleans up its state when an exception is thrown, leading to unexpected state or control flow.
+
+Often, when functions or loops become complicated, some level of resource cleanup is needed throughout execution. Exceptions can disturb the flow of the code and prevent the necessary cleanup from happening.","Varies by Context
+Scope: Other The code could be left in a bad state.","If one breaks from a loop or function by throwing an exception, make sure that cleanup happens or that you should exit the program. Use throwing exceptions sparsely.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+462,Duplicate Key in Associative List (Alist),ALLOWED,Variant,"Duplicate keys in associative lists can lead to non-unique keys being mistaken for an error.
+
+A duplicate key entry -- if the alist is designed properly -- could be used as a constant time replace function. However, duplicate key entries could be inserted by mistake. Because of this ambiguity, duplicate key entries in an association list are not recommended and should not be allowed.","Quality Degradation; Varies by Context
+Scope: Other","Use a hash table instead of an alist.
+----------------
+Use an alist which checks the uniqueness of hash keys with each entry before inserting the entry.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+470,Use of Externally-Controlled Input to Select Classes or Code ('Unsafe Reflection'),ALLOWED,Base,"The product uses external input with reflection to select which classes or code to use, but it does not sufficiently prevent the input from selecting improper classes or code.
+
+If the product uses external inputs to determine which class to instantiate or which method to invoke, then an attacker could supply values to select unexpected classes or methods. If this occurs, then the attacker could create control flow paths that were not intended by the developer. These paths could bypass authentication or access control checks, or otherwise cause the product to behave in an unexpected manner. This situation becomes a doomsday scenario if the attacker can upload files into a location that appears on the product's classpath (CWE-427) or add new entries to the product's classpath (CWE-426). Under either of these conditions, the attacker can use reflection to introduce new, malicious behavior into the product.","Execute Unauthorized Code or Commands; Alter Execution Logic
+Scope: Integrity, Confidentiality, Availability, Other The attacker might be able to execute code that is not directly accessible to the attacker. Alternately, the attacker could call unexpected code in the wrong place or the wrong time, possibly modifying critical system state.
+
+DoS: Crash, Exit, or Restart; Other
+Scope: Availability, Other The attacker might be able to use reflection to call the wrong code, possibly with unexpected arguments that violate the API ( CWE-227 ). This could cause the product to exit or hang.
+
+Read Application Data
+Scope: Confidentiality By causing the wrong code to be invoked, the attacker might be able to trigger a runtime error that leaks sensitive information in the error message, such as CWE-536 .","Refactor your code to avoid using reflection.
+----------------
+Do not use user-controlled inputs to select and load classes or code.
+----------------
+Apply strict input validation by using allowlists or indirect selection to ensure that the user is only selecting allowable classes or code.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,Reflection Injection
+476,NULL Pointer Dereference,ALLOWED,Base,The product dereferences a pointer that it expects to be valid but is NULL.,"DoS: Crash, Exit, or Restart
+Scope: Availability NULL pointer dereferences usually result in the failure of the process unless exception handling (on some platforms) is available and implemented. Even when exception handling is being used, it can still be very difficult to return the software to a safe state of operation.
+
+Execute Unauthorized Code or Commands; Read Memory; Modify Memory
+Scope: Integrity, Confidentiality In rare circumstances, when NULL is equivalent to the 0x0 memory address and privileged code can access it, then writing or reading memory is possible, which may lead to code execution.","For any pointers that could have been modified or provided from a function that can return NULL, check the pointer for NULL before use. When working with a multithreaded or otherwise asynchronous environment, ensure that proper locking APIs are used to lock before the check, and unlock when it has finished [ REF-1484 ].
+----------------
+Select a programming language that is not susceptible to these issues.
+----------------
+Check the results of all functions that return a value and verify that the value is non-null before acting upon it. Effectiveness: Moderate Note: Checking the return value of the function will typically be sufficient, however beware of race conditions ( CWE-362 ) in a concurrent environment. This solution does not handle the use of improperly initialized variables ( CWE-665 ).
+----------------
+Identify all variables and data stores that receive information from external sources, and apply input validation to make sure that they are only initialized to expected values.
+----------------
+Explicitly initialize all variables and other data stores, either during declaration or just before the first usage.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,"NPD
+                                    
+
+Common abbreviation for Null Pointer Dereference
+
+
+
+
+                                        null deref
+                                    
+
+Common abbreviation for Null Pointer Dereference
+
+
+
+
+                                        NPE
+                                    
+
+Common abbreviation for Null Pointer Exception
+
+
+
+
+                                        nil pointer dereference
+                                    
+
+used for access of nil in Go programs"
+478,Missing Default Case in Multiple Condition Expression,ALLOWED,Base,"The code does not have a default case in an expression with multiple conditions, such as a switch statement.
+
+If a multiple-condition expression (such as a switch in C) omits the default case but does not consider or handle all possible values that could occur, then this might lead to complex logical errors and resultant weaknesses. Because of this, further decisions are made based on poor information, and cascading failure results. This cascading failure may result in any number of security issues, and constitutes a significant failure in the system.","Varies by Context; Alter Execution Logic
+Scope: Integrity Depending on the logical circumstances involved, any consequences may result: e.g., issues of confidentiality, authentication, authorization, availability, integrity, accountability, or non-repudiation.","Ensure that there are no cases unaccounted for when adjusting program flow or values based on the value of a given variable. In the case of switch style statements, the very simple act of creating a default case can, if done correctly, mitigate this situation. Often however, the default case is used simply to represent an assumed option, as opposed to working as a check for invalid input. This is poor practice and in some cases is as bad as omitting a default case entirely.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+481,Assigning instead of Comparing,ALLOWED,Variant,"The code uses an operator for assignment when the intention was to perform a comparison.
+
+In many languages the compare statement is very close in appearance to the assignment statement and are often confused. This bug is generally the result of a typo and usually causes obvious problems with program execution. If the comparison is in an if statement, the if statement will usually evaluate the value of the right-hand side of the predicate.","Alter Execution Logic
+Scope: Other","Many IDEs and static analysis products will detect this problem.
+----------------
+Place constants on the left. If one attempts to assign a constant with a variable, the compiler will produce an error.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+484,Omitted Break Statement in Switch,ALLOWED,Base,"The product omits a break statement within a switch or similar construct, causing code associated with multiple conditions to execute. This can cause problems when the programmer only intended to execute code associated with one condition.
+
+This can lead to critical code executing in situations where it should not.","Alter Execution Logic
+Scope: Other This weakness can cause unintended logic to be executed and other unexpected application behavior.","Omitting a break statement so that one may fall through is often indistinguishable from an error, and therefore should be avoided. If you need to use fall-through capabilities, make sure that you have clearly documented this within the switch statement, and ensure that you have examined all the logical possibilities.
+----------------
+The functionality of omitting a break statement could be clarified with an if statement. This method is much safer.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+486,Comparison of Classes by Name,ALLOWED,Variant,"The product compares classes by name, which can cause it to use the wrong class when multiple classes can have the same name.
+
+If the decision to trust the methods and data of an object is based on the name of a class, it is possible for malicious users to send objects of the same name as trusted classes and thereby gain the trust afforded to known classes and types.","Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability If a product relies solely on the name of an object to determine identity, it may execute the incorrect or unintended code.","Use class equivalency to determine type. Rather than use the class name to determine if an object is of a given type, use the getClass() method, and == operator.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+487,Reliance on Package-level Scope,ALLOWED,Base,"Java packages are not inherently closed; therefore, relying on them for code security is not a good practice.
+
+The purpose of package scope is to prevent accidental access by other parts of a program. This is an ease-of-software-development feature but not a security feature.","Read Application Data
+Scope: Confidentiality Any data in a Java package can be accessed outside of the Java framework if the package is distributed.
+
+Modify Application Data
+Scope: Integrity The data in a Java class can be modified by anyone outside of the Java framework if the package is distributed.","Data should be private static and final whenever possible. This will assure that your code is protected by instantiating early, preventing access and tampering.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+491,Public cloneable() Method Without Final ('Object Hijack'),ALLOWED,Variant,"A class has a cloneable() method that is not declared final, which allows an object to be created without calling the constructor. This can cause the object to be in an unexpected state.","Unexpected State; Varies by Context
+Scope: Integrity, Other",Make the cloneable() method final.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+492,Use of Inner Class Containing Sensitive Data,ALLOWED,Variant,"Inner classes are translated into classes that are accessible at package scope and may expose code that the programmer intended to keep private to attackers.
+
+Inner classes quietly introduce several security concerns because of the way they are translated into Java bytecode. In Java source code, it appears that an inner class can be declared to be accessible only by the enclosing class, but Java bytecode has no concept of an inner class, so the compiler must transform an inner class declaration into a peer class with package level access to the original outer class. More insidiously, since an inner class can access private fields in its enclosing class, once an inner class becomes a peer class in bytecode, the compiler converts private fields accessed by the inner class into protected fields.","Read Application Data
+Scope: Confidentiality ""Inner Classes"" data confidentiality aspects can often be overcome.","Using sealed classes protects object-oriented encapsulation paradigms and therefore protects code from being extended in unforeseen ways.
+----------------
+Inner Classes do not provide security. Warning: Never reduce the security of the object from an outer class, going to an inner class. If an outer class is final or private, ensure that its inner class is private as well.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+493,Critical Public Variable Without Final Modifier,ALLOWED,Variant,"The product has a critical public variable that is not final, which allows the variable to be modified to contain unexpected values.
+
+If a field is non-final and public, it can be changed once the value is set by any function that has access to the class which contains the field. This could lead to a vulnerability if other parts of the program make assumptions about the contents of that field.","Modify Application Data
+Scope: Integrity The object could potentially be tampered with.
+
+Read Application Data
+Scope: Confidentiality The object could potentially allow the object to be read.","Declare all public fields as final when possible, especially if it is used to maintain internal state of an Applet or of classes used by an Applet. If a field must be public, then perform all appropriate sanity checks before accessing the field from your code.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+495,Private Data Structure Returned From A Public Method,ALLOWED,Variant,"The product has a method that is declared public, but returns a reference to a private data structure, which could then be modified in unexpected ways.","Modify Application Data
+Scope: Integrity The contents of the data structure can be modified from outside the intended scope.","Declare the method private.
+----------------
+Clone the member data and keep an unmodified version of the data private to the object.
+----------------
+Use public setter methods that govern how a private member can be modified.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+496,Public Data Assigned to Private Array-Typed Field,ALLOWED,Variant,Assigning public data to a private array is equivalent to giving public access to the array.,"Modify Application Data
+Scope: Integrity The contents of the array can be modified from outside the intended scope.",Do not allow objects to modify private members of a class.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+498,Cloneable Class Containing Sensitive Information,ALLOWED,Variant,"The code contains a class with sensitive data, but the class is cloneable. The data can then be accessed by cloning the class.
+
+Cloneable classes are effectively open classes, since data cannot be hidden in them. Classes that do not explicitly deny cloning can be cloned by any other class without running the constructor.","Bypass Protection Mechanism
+Scope: Access Control A class that can be cloned can be produced without executing the constructor. This is dangerous since the constructor may perform security-related checks. By allowing the object to be cloned, those checks may be bypassed.","If you do make your classes clonable, ensure that your clone method is final and throw super.clone().",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+499,Serializable Class Containing Sensitive Data,ALLOWED,Variant,"The code contains a class with sensitive data, but the class does not explicitly deny serialization. The data can be accessed by serializing the class through another class.
+
+Serializable classes are effectively open classes since data cannot be hidden in them. Classes that do not explicitly deny serialization can be serialized by any other class, which can then in turn use the data stored inside it.","Read Application Data
+Scope: Confidentiality an attacker can write out the class to a byte stream, then extract the important data from it.","In Java, explicitly define final writeObject() to prevent serialization. This is the recommended solution. Define the writeObject() function to throw an exception explicitly denying serialization.
+----------------
+Make sure to prevent serialization of your objects.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+500,Public Static Field Not Marked Final,ALLOWED,Variant,"An object contains a public static field that is not marked final, which might allow it to be modified in unexpected ways.
+
+Public static variables can be read without an accessor and changed without a mutator by any classes in the application.","Modify Application Data
+Scope: Integrity The object could potentially be tampered with.
+
+Read Application Data
+Scope: Confidentiality The object could potentially allow the object to be read.","Clearly identify the scope for all critical data elements, including whether they should be regarded as static.
+----------------
+Make any static fields private and constant. A constant field is denoted by the keyword 'const' in C/C++ and ' final' in Java",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+502,Deserialization of Untrusted Data,ALLOWED,Base,The product deserializes untrusted data without sufficiently ensuring that the resulting data will be valid.,"Modify Application Data; Unexpected State
+Scope: Integrity Attackers can modify unexpected objects or data that was assumed to be safe from modification. Deserialized data or code could be modified without using the provided accessor functions, or unexpected functions could be invoked.
+
+DoS: Resource Consumption (CPU)
+Scope: Availability If a function is making an assumption on when to terminate, based on a sentry in a string, it could easily never terminate.
+
+Varies by Context
+Scope: Other The consequences can vary widely, because it depends on which objects or methods are being deserialized, and how they are used. Making an assumption that the code in the deserialized object is valid is dangerous and can enable exploitation. One example is attackers using gadget chains to perform unauthorized actions, such as generating a shell.","If available, use the signing/sealing features of the programming language to assure that deserialized data has not been tainted. For example, a hash-based message authentication code (HMAC) could be used to ensure that data has not been modified.
+----------------
+When deserializing data, populate a new object rather than just deserializing. The result is that the data flows through safe input validation and that the functions are safe.
+----------------
+Explicitly define a final object() to prevent deserialization.
+----------------
+Make fields transient to protect them from deserialization. An attempt to serialize and then deserialize a class containing transient fields will result in NULLs where the transient data should be. This is an excellent way to prevent time, environment-based, or sensitive variables from being carried over and used improperly.
+----------------
+Avoid having unnecessary types or gadgets (a sequence of instances and method invocations that can self-execute during the deserialization process, often found in libraries) available that can be leveraged for malicious ends. This limits the potential for unintended or unauthorized types and gadgets to be leveraged by the attacker. Add only acceptable classes to an allowlist. Note: new gadgets are constantly being discovered, so this alone is not a sufficient mitigation.
+----------------
+Employ cryptography of the data or code for protection. However, it's important to note that it would still be client-side security. This is risky because if the client is compromised then the security implemented on the client (the cryptography) can be bypassed.
+----------------
+Strategy: Firewall Use an application firewall that can detect attacks against this weakness. It can be beneficial in cases in which the code cannot be fixed (because it is controlled by a third party), as an emergency prevention measure while more comprehensive software assurance measures are applied, or to provide defense in depth [ REF-1481 ]. Effectiveness: Moderate Note: An application firewall might not cover all possible input vectors. In addition, attack techniques might be available to bypass the protection mechanism, such as using malformed inputs that can still be processed by the component that receives those inputs. Depending on functionality, an application firewall might inadvertently reject or modify legitimate requests. Finally, some manual effort may be required for customization.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,"Marshaling, Unmarshaling
+                                    
+
+Marshaling and unmarshaling are effectively synonyms for serialization and deserialization, respectively.
+
+
+
+
+                                        Pickling, Unpickling
+                                    
+
+In Python, the ""pickle"" functionality is used to perform serialization and deserialization.
+
+
+
+
+                                        PHP Object Injection
+                                    
+
+Some PHP application researchers use this term when attacking unsafe use of the unserialize() function; but it is also used for CWE-915."
+536,Servlet Runtime Error Message Containing Sensitive Information,ALLOWED,Variant,A servlet error message indicates that there exists an unhandled exception in the web application code and may provide useful information to an attacker.,"Read Application Data
+Scope: Confidentiality The error message may contain the location of the file in which the offending function is located. This may disclose the web root's absolute path as well as give the attacker the location of application files or configuration information. It may even disclose the portion of code that failed. In many cases, an attacker can use the data to launch further attacks against the system.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+537,Java Runtime Error Message Containing Sensitive Information,ALLOWED,Variant,"In many cases, an attacker can leverage the conditions that cause unhandled exception errors in order to gain unauthorized access to the system.","Read Application Data
+Scope: Confidentiality",Do not expose sensitive error information to the user.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+543,Use of Singleton Pattern Without Synchronization in a Multithreaded Context,ALLOWED,Variant,"The product uses the singleton pattern when creating a resource within a multithreaded environment.
+
+The use of a singleton pattern may not be thread-safe.","Other; Modify Application Data
+Scope: Other, Integrity","Use the Thread-Specific Storage Pattern. See References.
+----------------
+Do not use member fields to store information in the Servlet. In multithreading environments, storing user data in Servlet member fields introduces a data access race condition.
+----------------
+Avoid using the double-checked locking pattern in language versions that cannot guarantee thread safety. This pattern may be used to avoid the overhead of a synchronized call, but in certain versions of Java (for example), this has been shown to be unsafe because it still introduces a race condition ( CWE-209 ). Effectiveness: Limited",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+555,J2EE Misconfiguration: Plaintext Password in Configuration File,ALLOWED,Variant,"The J2EE application stores a plaintext password in a configuration file.
+
+Storing a plaintext password in a configuration file allows anyone who can read the file to access the password-protected resource, making it an easy target for attackers.","Bypass Protection Mechanism
+Scope: Access Control","Do not hardwire passwords into your software.
+----------------
+Use industry standard libraries to encrypt passwords before storage in configuration files.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+567,Unsynchronized Access to Shared Data in a Multithreaded Context,ALLOWED,Base,"The product does not properly synchronize shared data, such as static variables across threads, which can lead to undefined behavior and unpredictable data changes.
+
+Within servlets, shared static variables are not protected from concurrent access, but servlets are multithreaded. This is a typical programming mistake in J2EE applications, since the multithreading is handled by the framework. When a shared variable can be influenced by an attacker, one thread could wind up modifying the variable to contain data that is not valid for a different thread that is also using the data within the variable.
+Note that this weakness is not unique to servlets.","Read Application Data; Modify Application Data; DoS: Instability; DoS: Crash, Exit, or Restart
+Scope: Confidentiality, Integrity, Availability If the shared variable contains sensitive data, it may be manipulated or displayed in another user session. If this data is used to control the application, its value can be manipulated to cause the application to crash or perform poorly.","Remove the use of static variables used between servlets. If this cannot be avoided, use synchronized access for these variables.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+568,finalize() Method Without super.finalize(),ALLOWED,Variant,"The product contains a finalize() method that does not call super.finalize().
+
+The Java Language Specification states that it is a good practice for a finalize() method to call super.finalize().","Quality Degradation
+Scope: Other","Call the super.finalize() method.
+----------------
+Use static analysis tools to spot such issues in your code.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+572,Call to Thread run() instead of start(),ALLOWED,Variant,"The product calls a thread's run() method instead of calling start(), which causes the code to run in the thread of the caller instead of the callee.
+
+In most cases a direct call to a Thread object's run() method is a bug. The programmer intended to begin a new thread of control, but accidentally called run() instead of start(), so the run() method will execute in the caller's thread of control.","Quality Degradation; Varies by Context
+Scope: Other",Use the start() method instead of the run() method.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+574,EJB Bad Practices: Use of Synchronization Primitives,ALLOWED,Variant,"The product violates the Enterprise JavaBeans (EJB) specification by using thread synchronization primitives.
+
+The Enterprise JavaBeans specification requires that every bean provider follow a set of programming guidelines designed to ensure that the bean will be portable and behave consistently in any EJB container. In this case, the product violates the following EJB guideline: ""An enterprise bean must not use thread synchronization primitives to synchronize execution of multiple instances."" The specification justifies this requirement in the following way: ""This rule is required to ensure consistent runtime semantics because while some EJB containers may use a single JVM to execute all enterprise bean's instances, others may distribute the instances across multiple JVMs.""","Quality Degradation
+Scope: Other",Do not use Synchronization Primitives when writing EJBs.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+575,EJB Bad Practices: Use of AWT Swing,ALLOWED,Variant,"The product violates the Enterprise JavaBeans (EJB) specification by using AWT/Swing.
+
+The Enterprise JavaBeans specification requires that every bean provider follow a set of programming guidelines designed to ensure that the bean will be portable and behave consistently in any EJB container. In this case, the product violates the following EJB guideline: ""An enterprise bean must not use the AWT functionality to attempt to output information to a display, or to input information from a keyboard."" The specification justifies this requirement in the following way: ""Most servers do not allow direct interaction between an application program and a keyboard/display attached to the server system.""","Quality Degradation
+Scope: Other",Do not use AWT/Swing when writing EJBs.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+576,EJB Bad Practices: Use of Java I/O,ALLOWED,Variant,"The product violates the Enterprise JavaBeans (EJB) specification by using the java.io package.
+
+The Enterprise JavaBeans specification requires that every bean provider follow a set of programming guidelines designed to ensure that the bean will be portable and behave consistently in any EJB container. In this case, the product violates the following EJB guideline: ""An enterprise bean must not use the java.io package to attempt to access files and directories in the file system."" The specification justifies this requirement in the following way: ""The file system APIs are not well-suited for business components to access data. Business components should use a resource manager API, such as JDBC, to store data.""","Quality Degradation
+Scope: Other",Do not use Java I/O when writing EJBs.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+577,EJB Bad Practices: Use of Sockets,ALLOWED,Variant,"The product violates the Enterprise JavaBeans (EJB) specification by using sockets.
+
+The Enterprise JavaBeans specification requires that every bean provider follow a set of programming guidelines designed to ensure that the bean will be portable and behave consistently in any EJB container. In this case, the product violates the following EJB guideline: ""An enterprise bean must not attempt to listen on a socket, accept connections on a socket, or use a socket for multicast."" The specification justifies this requirement in the following way: ""The EJB architecture allows an enterprise bean instance to be a network socket client, but it does not allow it to be a network server. Allowing the instance to become a network server would conflict with the basic function of the enterprise bean-- to serve the EJB clients.""","Quality Degradation
+Scope: Other",Do not use Sockets when writing EJBs.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+578,EJB Bad Practices: Use of Class Loader,ALLOWED,Variant,"The product violates the Enterprise JavaBeans (EJB) specification by using the class loader.
+
+The Enterprise JavaBeans specification requires that every bean provider follow a set of programming guidelines designed to ensure that the bean will be portable and behave consistently in any EJB container. In this case, the product violates the following EJB guideline: ""The enterprise bean must not attempt to create a class loader; obtain the current class loader; set the context class loader; set security manager; create a new security manager; stop the JVM; or change the input, output, and error streams."" The specification justifies this requirement in the following way: ""These functions are reserved for the EJB container. Allowing the enterprise bean to use these functions could compromise security and decrease the container's ability to properly manage the runtime environment.""","Execute Unauthorized Code or Commands; Varies by Context
+Scope: Confidentiality, Integrity, Availability, Other",Do not use the Class Loader when writing EJBs.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+579,J2EE Bad Practices: Non-serializable Object Stored in Session,ALLOWED,Variant,"The product stores a non-serializable object as an HttpSession attribute, which can hurt reliability.
+
+A J2EE application can make use of multiple JVMs in order to improve application reliability and performance. In order to make the multiple JVMs appear as a single application to the end user, the J2EE container can replicate an HttpSession object across multiple JVMs so that if one JVM becomes unavailable another can step in and take its place without disrupting the flow of the application. This is only possible if all session data is serializable, allowing the session to be duplicated between the JVMs.","Quality Degradation
+Scope: Other","In order for session replication to work, the values the product stores as attributes in the session must implement the Serializable interface.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+580,clone() Method Without super.clone(),ALLOWED,Variant,"The product contains a clone() method that does not call super.clone() to obtain the new object.
+
+All implementations of clone() should obtain the new object by calling super.clone(). If a class does not follow this convention, a subclass's clone() method will return an object of the wrong type.","Unexpected State; Quality Degradation
+Scope: Integrity, Other","Call super.clone() within your clone() method, when obtaining a new object.
+----------------
+In some cases, you can eliminate the clone method altogether and use copy constructors.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+581,Object Model Violation: Just One of Equals and Hashcode Defined,ALLOWED,Variant,"The product does not maintain equal hashcodes for equal objects.
+
+Java objects are expected to obey a number of invariants related to equality. One of these invariants is that equal objects must have equal hashcodes. In other words, if a.equals(b) == true then a.hashCode() == b.hashCode().","Other
+Scope: Integrity, Other If this invariant is not upheld, it is likely to cause trouble if objects of this class are stored in a collection. If the objects of the class in question are used as a key in a Hashtable or if they are inserted into a Map or Set, it is critical that equal objects have equal hashcodes.",Both Equals() and Hashcode() should be defined.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+582,"Array Declared Public, Final, and Static",ALLOWED,Variant,"The product declares an array public, final, and static, which is not sufficient to prevent the array's contents from being modified.
+
+Because arrays are mutable objects, the final constraint requires that the array object itself be assigned only once, but makes no guarantees about the values of the array elements. Since the array is public, a malicious program can change the values stored in the array. As such, in most cases an array declared public, final and static is a bug.","Modify Application Data
+Scope: Integrity",In most situations the array should be made private.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+583,finalize() Method Declared Public,ALLOWED,Variant,"The product violates secure coding principles for mobile code by declaring a finalize() method public.
+
+A product should never call finalize explicitly, except to call super.finalize() inside an implementation of finalize(). In mobile code situations, the otherwise error prone practice of manual garbage collection can become a security threat if an attacker can maliciously invoke a finalize() method because it is declared with public access.","Alter Execution Logic; Execute Unauthorized Code or Commands; Modify Application Data
+Scope: Confidentiality, Integrity, Availability","If you are using finalize() as it was designed, there is no reason to declare finalize() with anything other than protected access.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+585,Empty Synchronized Block,ALLOWED,Variant,"The product contains an empty synchronized block.
+
+An empty synchronized block does not actually accomplish any synchronization and may indicate a troubled section of code. An empty synchronized block can occur because code no longer needed within the synchronized block is commented out without removing the synchronized block.","Other
+Scope: Other An empty synchronized block will wait until nobody else is using the synchronizer being specified. While this may be part of the desired behavior, because you haven't protected the subsequent code by placing it inside the synchronized block, nothing is stopping somebody else from modifying whatever it was you were waiting for while you run the subsequent code.","When you come across an empty synchronized statement, or a synchronized statement in which the code has been commented out, try to determine what the original intentions were and whether or not the synchronized block is still necessary.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+586,Explicit Call to Finalize(),ALLOWED,Base,"The product makes an explicit call to the finalize() method from outside the finalizer.
+
+While the Java Language Specification allows an object's finalize() method to be called from outside the finalizer, doing so is usually a bad idea. For example, calling finalize() explicitly means that finalize() will be called more than once: the first time will be the explicit call and the last time will be the call that is made after the object is garbage collected.","Unexpected State; Quality Degradation
+Scope: Integrity, Other",Do not make explicit calls to finalize(). Use static analysis tools to spot such instances.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+594,J2EE Framework: Saving Unserializable Objects to Disk,ALLOWED,Variant,"When the J2EE container attempts to write unserializable objects to disk there is no guarantee that the process will complete successfully.
+
+In heavy load conditions, most J2EE application frameworks flush objects to disk to manage memory requirements of incoming requests. For example, session scoped objects, and even application scoped objects, are written to disk when required. While these application frameworks do the real work of writing objects to disk, they do not enforce that those objects be serializable, thus leaving the web application vulnerable to crashes induced by serialization failure. An attacker may be able to mount a denial of service attack by sending enough requests to the server to force the web application to save objects to disk.","Modify Application Data
+Scope: Integrity Data represented by unserializable objects can be corrupted.
+
+DoS: Crash, Exit, or Restart
+Scope: Availability Non-serializability of objects can lead to system crash.",All objects that become part of session and application scope must implement the java.io.Serializable interface to ensure serializability of containing objects.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+595,Comparison of Object References Instead of Object Contents,ALLOWED,Variant,"The product compares object references instead of the contents of the objects themselves, preventing it from detecting equivalent objects.
+
+For example, in Java, comparing objects using == usually produces deceptive results, since the == operator compares object references rather than values; often, this means that using == for strings is actually comparing the strings' references, not their values.","Varies by Context
+Scope: Other This weakness can lead to erroneous results that can cause unexpected application behaviors.","In Java, use the equals() method to compare objects instead of the == operator. If using ==, it is important for performance reasons that your objects are created by a static factory, not by a constructor.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+597,Use of Wrong Operator in String Comparison,ALLOWED,Variant,"The product uses the wrong operator when comparing a string, such as using ""=="" when the .equals() method should be used instead.
+
+In Java, using == or != to compare two strings for equality actually compares two objects for equality rather than their string values for equality. Chances are good that the two references will never be equal. While this weakness often only affects program correctness, if the equality is used for a security decision, the unintended comparison result could be leveraged to affect program security.","Other
+Scope: Other","Within Java, use .equals() to compare string values. Within JavaScript, use == to compare string values. Within PHP, use == to compare a numeric value to a string value. (PHP converts the string to a number.) Effectiveness: High",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+600,Uncaught Exception in Servlet,ALLOWED,Variant,"The Servlet does not catch all exceptions, which may reveal sensitive debugging information.
+
+When a Servlet throws an exception, the default error response the Servlet container sends back to the user typically includes debugging information. This information is of great value to an attacker. For example, a stack trace might show the attacker a malformed SQL query string, the type of database being used, and the version of the application container. This information enables the attacker to target known vulnerabilities in these components.","Read Application Data; DoS: Crash, Exit, or Restart
+Scope: Confidentiality, Availability",Implement Exception blocks to handle all types of Exceptions.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,Missing Catch Block
+607,Public Static Final Field References Mutable Object,ALLOWED,Variant,"A public or protected static final field references a mutable object, which allows the object to be changed by malicious code, or accidentally from another package.","Modify Application Data
+Scope: Integrity",Protect mutable objects by making them private. Restrict access to the getter and setter as well.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+608,Struts: Non-private Field in ActionForm Class,ALLOWED,Variant,"An ActionForm class contains a field that has not been declared private, which can be accessed without using a setter or getter.","Modify Application Data; Read Application Data
+Scope: Integrity, Confidentiality",Make all fields private. Use getter to get the value of the field. Setter should be used only by the framework; setting an action form field from other actions is bad practice and should be avoided.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+609,Double-Checked Locking,ALLOWED,Base,"The product uses double-checked locking to access a resource without the overhead of explicit synchronization, but the locking is insufficient.
+
+Double-checked locking refers to the situation where a programmer checks to see if a resource has been initialized, grabs a lock, checks again to see if the resource has been initialized, and then performs the initialization if it has not occurred yet. This should not be done, as it is not guaranteed to work in all languages and on all architectures. In summary, other threads may not be operating inside the synchronous block and are not guaranteed to see the operations execute in the same order as they would appear inside the synchronous block.","Modify Application Data; Alter Execution Logic
+Scope: Integrity, Other","While double-checked locking can be achieved in some languages, it is inherently flawed in Java before 1.5, and cannot be achieved without compromising platform independence. Before Java 1.5, only use of the synchronized keyword is known to work. Beginning in Java 1.5, use of the ""volatile"" keyword allows double-checked locking to work successfully, although there is some debate as to whether it achieves sufficient performance gains. See references.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+617,Reachable Assertion,ALLOWED,Base,"The product contains an assert() or similar statement that can be triggered by an attacker, which leads to an application exit or other behavior that is more severe than necessary.
+
+While assertion is good for catching logic errors and reducing the chances of reaching more serious vulnerability conditions, it can still lead to a denial of service.
+For example, if a server handles multiple simultaneous connections, and an assert() occurs in one single connection that causes all other connections to be dropped, this is a reachable assertion that leads to a denial of service.","DoS: Crash, Exit, or Restart
+Scope: Availability An attacker that can trigger an assert statement can still lead to a denial of service if the relevant code can be triggered by an attacker, and if the scope of the assert() extends beyond the attacker's own session.","Make sensitive open/close operation non reachable by directly user-controlled data (e.g. open/close resources)
+----------------
+Strategy: Input Validation Perform input validation on user data.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,assertion failure
+766,Critical Data Element Declared Public,ALLOWED,Base,"The product declares a critical variable, field, or member to be public when intended security policy requires it to be private.
+
+This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.","Read Application Data; Modify Application Data
+Scope: Integrity, Confidentiality Making a critical variable public allows anyone with access to the object in which the variable is contained to alter or read the value.
+
+Reduce Maintainability
+Scope: Other","Data should be private, static, and final whenever possible. This will assure that your code is protected by instantiating early, preventing access, and preventing tampering.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+767,Access to Critical Private Variable via Public Method,ALLOWED,Base,"The product defines a public method that reads or modifies a private variable.
+
+If an attacker modifies the variable to contain unexpected values, this could violate assumptions from other parts of the code. Additionally, if an attacker can read the private variable, it may expose sensitive information or make it easier to launch further attacks.","Modify Application Data; Other
+Scope: Integrity, Other",Use class accessor and mutator methods appropriately. Perform validation when accepting data from a public method that is intended to modify a critical private variable. Also be sure that appropriate access controls are being applied when a public method interfaces with critical data.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+917,Improper Neutralization of Special Elements used in an Expression Language Statement ('Expression Language Injection'),ALLOWED,Base,"The product constructs all or part of an expression language (EL) statement in a framework such as a Java Server Page (JSP) using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended EL statement before it is executed.
+
+Frameworks such as Java Server Page (JSP) allow a developer to insert executable expressions within otherwise-static content. When the developer is not aware of the executable nature of these expressions and/or does not disable them, then if an attacker can inject expressions, this could lead to code execution or other unexpected behaviors.","Read Application Data
+Scope: Confidentiality
+
+Execute Unauthorized Code or Commands
+Scope: Integrity","Avoid adding user-controlled data into an expression interpreter when possible.
+----------------
+If user-controlled data must be added to an expression interpreter, one or more of the following should be performed: Validate that the user input will not evaluate as an expression Encode the user input in a way that ensures it is not evaluated as an expression
+----------------
+The framework or tooling might allow the developer to disable or deactivate the processing of EL expressions, such as setting the isELIgnored attribute for a JSP page to ""true"".",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,EL Injection
+1235,Incorrect Use of Autoboxing and Unboxing for Performance Critical Operations,ALLOWED,Base,"The code uses boxed primitives, which may introduce inefficiencies into performance-critical operations.","DoS: Resource Consumption (CPU); DoS: Resource Consumption (Memory); DoS: Resource Consumption (Other); Reduce Performance
+Scope: Availability Likelihood: Low Incorrect autoboxing/unboxing would result in reduced performance, which sometimes can lead to resource consumption issues, impacting availability when used with generic collections.","Use of boxed primitives should be limited to certain situations such as when calling methods with typed parameters.  They should not be used for scientific computing or other performance critical operations. They are only suited to support ""impedance mismatch"" between reference types and primitives.  Examine the use of boxed primitives prior to use. Use SparseArrays or ArrayMap instead of HashMap to avoid performance overhead.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1335,Incorrect Bitwise Shift of Integer,ALLOWED,Base,"An integer value is specified to be shifted by a negative amount or an amount greater than or equal to the number of bits contained in the value causing an unexpected or indeterminate result.
+
+Specifying a value to be shifted by a negative amount is undefined in various languages. Various computer architectures implement this action in different ways. The compilers and interpreters when generating code to accomplish a shift generally do not do a check for this issue.
+Specifying an over-shift, a shift greater than or equal to the number of bits contained in a value to be shifted, produces a result which varies by architecture and compiler. In some languages, this action is specifically listed as producing an undefined result.","DoS: Crash, Exit, or Restart
+Scope: Integrity",Implicitly or explicitly add checks and mitigation for negative or over-shift values.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1336,Improper Neutralization of Special Elements Used in a Template Engine,ALLOWED,Base,"The product uses a template engine to insert or process externally-influenced input, but it does not neutralize or incorrectly neutralizes special elements or syntax that can be interpreted as template expressions or other code directives when processed by the engine.
+
+Many web applications use template engines that allow developers to insert externally-influenced values into free text or messages in order to generate a full web page, document, message, etc. Such engines include Twig, Jinja2, Pug, Java Server Pages, FreeMarker, Velocity, ColdFusion, Smarty, and many others - including PHP itself. Some CMS (Content Management Systems) also use templates.
+Template engines often have their own custom command or expression language. If an attacker can influence input into a template before it is processed, then the attacker can invoke arbitrary expressions, i.e. perform injection attacks. For example, in some template languages, an attacker could inject the expression ""{{7*7}}"" and determine if the output returns ""49"" instead. The syntax varies depending on the language.
+In some cases, XSS-style attacks can work, which can obscure the root cause if the developer does not closely investigate the root cause of the error.
+Template engines can be used on the server or client, so both ""sides"" could be affected by injection. The mechanisms of attack or the affected technologies might be different, but the mistake is fundamentally the same.","Execute Unauthorized Code or Commands
+Scope: Integrity","Choose a template engine that offers a sandbox or restricted mode, or at least limits the power of any available expressions, function calls, or commands.
+----------------
+Use the template engine's sandbox or restricted mode, if available.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,"Server-Side Template Injection / SSTI
+                                    
+
+This term is used for injection into template engines being used by a server.
+
+
+
+
+                                        Client-Side Template Injection / CSTI
+                                    
+
+This term is used for injection into template engines being used by a client."
+1341,Multiple Releases of Same Resource or Handle,ALLOWED,Base,"The product attempts to close or release a resource or handle more than once, without any successful open between the close operations.
+
+Code typically requires ""opening"" handles or references to resources such as memory, files, devices, socket connections, services, etc. When the code is finished with using the resource, it is typically expected to ""close"" or ""release"" the resource, which indicates to the environment (such as the OS) that the resource can be re-assigned or reused by unrelated processes or actors - or in some cases, within the same process. API functions or other abstractions are often used to perform this release, such as free() or delete() within C/C++, or file-handle close() operations that are used in many languages.
+Unfortunately, the implementation or design of such APIs might expect the developer to be responsible for ensuring that such APIs are only called once per release of the resource. If the developer attempts to release the same resource/handle more than once, then the API's expectations are not met, resulting in undefined and/or insecure behavior. This could lead to consequences such as memory corruption, data corruption, execution path corruption, or other consequences.
+Note that while the implementation for most (if not all) resource reservation allocations involve a unique identifier/pointer/symbolic reference, then if this identifier is reused, checking the identifier for resource closure may result in a false state of openness and closing of the wrong resource. For this reason, reuse of identifiers is discouraged.","DoS: Crash, Exit, or Restart
+Scope: Availability, Integrity Likelihood: Medium","Change the code's logic so that the resource is only closed once. This might require simplifying or refactoring. This fix can be simple to do in small code blocks, but more difficult when multiple closes are buried within complex conditionals.
+----------------
+Strategy: Refactoring It can be effective to implement a flag that is (1) set when the resource is opened, (2) cleared when it is closed, and (3) checked before closing. This approach can be useful when there are disparate cases in which closes must be performed. However, flag-tracking can increase code complexity and requires diligent compliance by the programmer.
+----------------
+Strategy: Refactoring When closing a resource, set the resource's associated variable to NULL or equivalent value for the given language. Some APIs will ignore this null value without causing errors. For other APIs, this can lead to application crashes or exceptions, which may still be preferable to corrupting an unintended resource such as memory or data. Effectiveness: Defense in Depth",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A

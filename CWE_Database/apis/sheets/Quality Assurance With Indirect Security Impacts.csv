@@ -1,0 +1,549 @@
+ID,Title,Vulnerability_Mapping,Abstraction,Description,Impact,Mitigation,Comments,Alternate_Terms
+456,Missing Initialization of a Variable,ALLOWED,Variant,"The product does not initialize critical variables, which causes the execution environment to use unexpected values.","Unexpected State; Quality Degradation; Varies by Context
+Scope: Integrity, Other The uninitialized data may be invalid, causing logic errors within the program. In some cases, this could result in a security problem.","Strategy: Attack Surface Reduction Ensure that critical variables are initialized before first use [ REF-1485 ].
+----------------
+Strategy: Language Selection Choose a language that is not susceptible to these issues.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+474,Use of Function with Inconsistent Implementations,ALLOWED,Base,"The code uses a function that has inconsistent implementations across operating systems and versions.
+
+The use of inconsistent implementations can cause changes in behavior when the code is ported or built under a different environment than the programmer expects, which can lead to security problems in some cases.
+The implementation of many functions varies by platform, and at times, even by different versions of the same platform. Implementation differences can include:
+
+Slight differences in the way parameters are interpreted leading to inconsistent results.
+Some implementations of the function carry significant security risks.
+The function might not be defined on all platforms.
+The function might change which return codes it can provide, or change the meaning of its return codes.","Quality Degradation; Varies by Context
+Scope: Other",Do not accept inconsistent behavior from the API specifications when the deviant behavior increase the risk level.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+475,Undefined Behavior for Input to API,ALLOWED,Base,The behavior of this function is undefined unless its control parameter is set to a specific value.,"Quality Degradation; Varies by Context
+Scope: Other",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+477,Use of Obsolete Function,ALLOWED,Base,"The code uses deprecated or obsolete functions, which suggests that the code has not been actively reviewed or maintained.
+
+As programming languages evolve, functions occasionally become obsolete due to:
+
+Advances in the language
+Improved understanding of how operations should be performed effectively and securely
+Changes in the conventions that govern certain operations
+
+Functions that are removed are usually replaced by newer counterparts that perform the same task in some different and hopefully improved way.","Quality Degradation
+Scope: Other","Refer to the documentation for the obsolete function in order to determine why it is deprecated or obsolete and to learn about alternative ways to achieve the same functionality.
+----------------
+Consider seriously the security implications of using an obsolete function. Consider using alternate functions.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+483,Incorrect Block Delimitation,ALLOWED,Base,"The code does not explicitly delimit a block that is intended to contain 2 or more statements, creating a logic error.
+
+In some languages, braces (or other delimiters) are optional for blocks. When the delimiter is omitted, it is possible to insert a logic error in which a statement is thought to be in a block but is not. In some cases, the logic error can have security implications.","Alter Execution Logic
+Scope: Confidentiality, Integrity, Availability This is a general logic error which will often lead to obviously-incorrect behaviors that are quickly noticed and fixed. In lightly tested or untested code, this error may be introduced it into a production environment and provide additional attack vectors by creating a control flow path leading to an unexpected state in the application. The consequences will depend on the types of behaviors that are being incorrectly executed.",Always use explicit block delimitation and use static-analysis technologies to enforce this practice.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+484,Omitted Break Statement in Switch,ALLOWED,Base,"The product omits a break statement within a switch or similar construct, causing code associated with multiple conditions to execute. This can cause problems when the programmer only intended to execute code associated with one condition.
+
+This can lead to critical code executing in situations where it should not.","Alter Execution Logic
+Scope: Other This weakness can cause unintended logic to be executed and other unexpected application behavior.","Omitting a break statement so that one may fall through is often indistinguishable from an error, and therefore should be avoided. If you need to use fall-through capabilities, make sure that you have clearly documented this within the switch statement, and ensure that you have examined all the logical possibilities.
+----------------
+The functionality of omitting a break statement could be clarified with an if statement. This method is much safer.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+489,Active Debug Code,ALLOWED,Base,The product is released with debugging code still enabled or active.,"Bypass Protection Mechanism; Read Application Data; Gain Privileges or Assume Identity; Varies by Context
+Scope: Confidentiality, Integrity, Availability, Access Control, Other Active debug code can create unintended entry points or expose sensitive information. The severity of the exposed debug code will depend on the particular instance. At the least, it will give an attacker sensitive information about the settings and mechanics of web applications on the server. At worst, as is often the case, the debug code will allow an attacker complete control over the web application and server, as well as confidential information that either of these access.",Remove debug code before deploying the application.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,"Leftover debug code
+                                    
+
+This term originates from Seven Pernicious Kingdoms"
+546,Suspicious Comment,ALLOWED,Variant,"The code contains comments that suggest the presence of bugs, incomplete functionality, or weaknesses.
+
+Many suspicious comments, such as BUG, HACK, FIXME, LATER, LATER2, TODO, in the code indicate missing security functionality and checking. Others indicate code problems that programmers should fix, such as hard-coded variables, error handling, not using stored procedures, and performance issues.","Quality Degradation
+Scope: Other Suspicious comments could be an indication that there are problems in the source code that may need to be fixed and is an indication of poor quality. This could lead to further bugs and the introduction of weaknesses.","Remove comments that suggest the presence of bugs, incomplete functionality, or weaknesses, before deploying the application.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+547,"Use of Hard-coded, Security-relevant Constants",ALLOWED,Base,"The product uses hard-coded constants instead of symbolic names for security-critical values, which increases the likelihood of mistakes during code maintenance or security policy change.
+
+If the developer does not find all occurrences of the hard-coded constants, an incorrect policy decision may be made if one of the constants is not changed. Making changes to these values will require code changes that may be difficult or impossible once the system is released to the field. In addition, these hard-coded values may become available to attackers if the code is ever disclosed.","Varies by Context; Quality Degradation; Reduce Maintainability
+Scope: Other The existence of hardcoded constants could cause unexpected behavior and the introduction of weaknesses during code maintenance or when making changes to the code if all occurrences are not modified. The use of hardcoded constants is an indication of poor quality.",Avoid using hard-coded constants. Configuration files offer a more flexible solution.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+554,ASP.NET Misconfiguration: Not Using Input Validation Framework,ALLOWED,Variant,The ASP.NET application does not use an input validation framework.,"Unexpected State
+Scope: Integrity Unchecked input leads to cross-site scripting, process control, and SQL injection vulnerabilities, among others.","Use the ASP.NET validation framework to check all program input before it is processed by the application. Example uses of the validation framework include checking to ensure that: Phone number fields contain only valid characters in phone numbers Boolean values are only ""T"" or ""F"" Free-form strings are of a reasonable length and composition",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+561,Dead Code,ALLOWED,Base,"The product contains dead code, which can never be executed.
+
+Dead code is code that can never be executed in a running program. The surrounding code makes it impossible for a section of code to ever be executed.","Quality Degradation
+Scope: Other Dead code that results from code that can never be executed is an indication of problems with the source code that needs to be fixed and is an indication of poor quality.
+
+Reduce Maintainability
+Scope: Other","Remove dead code before deploying the application.
+----------------
+Use a static analysis tool to spot dead code.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+562,Return of Stack Variable Address,ALLOWED,Base,"A function returns the address of a stack variable, which will cause unintended program behavior, typically in the form of a crash.
+
+Because local variables are allocated on the stack, when a program returns a pointer to a local variable, it is returning a stack address. A subsequent function call is likely to re-use this same stack address, thereby overwriting the value of the pointer, which no longer corresponds to the same variable since a function's stack frame is invalidated when it returns. At best this will cause the value of the pointer to change unexpectedly. In many cases it causes the program to crash the next time the pointer is dereferenced.","Read Memory; Modify Memory; Execute Unauthorized Code or Commands; DoS: Crash, Exit, or Restart
+Scope: Availability, Integrity, Confidentiality If the returned stack buffer address is dereferenced after the return, then an attacker may be able to modify or read memory, depending on how the address is used.  If the address is used for reading, then the address itself may be exposed, or the contents that the address points to.  If the address is used for writing, this can lead to a crash and possibly code execution.",Use static analysis tools to spot return of the address of a stack variable.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+563,Assignment to Variable without Use,ALLOWED,Base,"The variable's value is assigned but never used, making it a dead store.
+
+After the assignment, the variable is either assigned another value or goes out of scope. It is likely that the variable is simply vestigial, but it is also possible that the unused variable points out a bug.","Quality Degradation; Varies by Context
+Scope: Other This weakness could be an indication of a bug in the program or a deprecated variable that was not removed and is an indication of poor quality. This could lead to further bugs and the introduction of weaknesses.",Remove unused variables from the code.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,Unused Variable
+585,Empty Synchronized Block,ALLOWED,Variant,"The product contains an empty synchronized block.
+
+An empty synchronized block does not actually accomplish any synchronization and may indicate a troubled section of code. An empty synchronized block can occur because code no longer needed within the synchronized block is commented out without removing the synchronized block.","Other
+Scope: Other An empty synchronized block will wait until nobody else is using the synchronizer being specified. While this may be part of the desired behavior, because you haven't protected the subsequent code by placing it inside the synchronized block, nothing is stopping somebody else from modifying whatever it was you were waiting for while you run the subsequent code.","When you come across an empty synchronized statement, or a synchronized statement in which the code has been commented out, try to determine what the original intentions were and whether or not the synchronized block is still necessary.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+587,Assignment of a Fixed Address to a Pointer,ALLOWED,Variant,"The product sets a pointer to a specific address other than NULL or 0.
+
+Using a fixed address is not portable, because that address will probably not be valid in all environments or platforms.","Execute Unauthorized Code or Commands
+Scope: Integrity, Confidentiality, Availability If one executes code at a known location, an attacker might be able to inject code there beforehand.
+
+DoS: Crash, Exit, or Restart; Reduce Maintainability; Reduce Reliability
+Scope: Availability If the code is ported to another platform or environment, the pointer is likely to be invalid and cause a crash.
+
+Read Memory; Modify Memory
+Scope: Confidentiality, Integrity The data at a known pointer location can be easily read or influenced by an attacker.",Never set a pointer to a fixed address.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+589,Call to Non-ubiquitous API,ALLOWED,Variant,"The product uses an API function that does not exist on all versions of the target platform. This could cause portability problems or inconsistencies that allow denial of service or other consequences.
+
+Some functions that offer security features supported by the OS are not available on all versions of the OS in common use. Likewise, functions are often deprecated or made obsolete for security reasons and should not be used.","Quality Degradation
+Scope: Other","Always test your code on any platform on which it is targeted to run on.
+----------------
+Test your code on the newest and oldest platform on which it is targeted to run on.
+----------------
+Develop a system to test for API functions that are not portable.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+594,J2EE Framework: Saving Unserializable Objects to Disk,ALLOWED,Variant,"When the J2EE container attempts to write unserializable objects to disk there is no guarantee that the process will complete successfully.
+
+In heavy load conditions, most J2EE application frameworks flush objects to disk to manage memory requirements of incoming requests. For example, session scoped objects, and even application scoped objects, are written to disk when required. While these application frameworks do the real work of writing objects to disk, they do not enforce that those objects be serializable, thus leaving the web application vulnerable to crashes induced by serialization failure. An attacker may be able to mount a denial of service attack by sending enough requests to the server to force the web application to save objects to disk.","Modify Application Data
+Scope: Integrity Data represented by unserializable objects can be corrupted.
+
+DoS: Crash, Exit, or Restart
+Scope: Availability Non-serializability of objects can lead to system crash.",All objects that become part of session and application scope must implement the java.io.Serializable interface to ensure serializability of containing objects.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+676,Use of Potentially Dangerous Function,ALLOWED,Base,"The product invokes a potentially dangerous function that could introduce a vulnerability if it is used incorrectly, but the function can also be used safely.","Varies by Context; Quality Degradation; Unexpected State
+Scope: Other If the function is used incorrectly, then it could result in security problems.","Identify a list of prohibited API functions and prohibit developers from using these functions, providing safer alternatives. In some cases, automatic code analysis tools or the compiler can be instructed to spot use of prohibited functions, such as the ""banned.h"" include file from Microsoft's SDL. [ REF-554 ] [ REF-7 ]",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+684,Incorrect Provision of Specified Functionality,ALLOWED,Class,"The code does not function according to its published specifications, potentially leading to incorrect usage.
+
+When providing functionality to an external party, it is important that the product behaves in accordance with the details specified. When requirements of nuances are not documented, the functionality may produce unintended behaviors for the caller, possibly leading to an exploitable state.","Quality Degradation
+Scope: Other",Ensure that your code strictly conforms to specifications.,Examine children of this entry to see if there is a better fit,N/A
+710,Improper Adherence to Coding Standards,DISCOURAGED,Pillar,"The product does not follow certain coding rules for development, which can lead to resultant weaknesses or increase the severity of the associated vulnerabilities.","Other
+Scope: Other","Select and require coding
+               standards. Ensure that they include security
+               concerns.
+----------------
+Closely follow coding standards, possibly
+               enforcing them upon checkin of the code into a source
+               control system or with periodic analyses.",Consider children or descendants of this entry instead.,N/A
+758,"Reliance on Undefined, Unspecified, or Implementation-Defined Behavior",ALLOWED,Class,"The product uses an API function, data structure, or other entity in a way that relies on properties that are not always guaranteed to hold for that entity.
+
+This can lead to resultant weaknesses when the required properties change, such as when the product is ported to a different platform or if an interaction error (CWE-435) occurs.","Reduce Maintainability; Unexpected State; Quality Degradation
+Scope: Other",N/A,Examine children of this entry to see if there is a better fit,N/A
+766,Critical Data Element Declared Public,ALLOWED,Base,"The product declares a critical variable, field, or member to be public when intended security policy requires it to be private.
+
+This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.","Read Application Data; Modify Application Data
+Scope: Integrity, Confidentiality Making a critical variable public allows anyone with access to the object in which the variable is contained to alter or read the value.
+
+Reduce Maintainability
+Scope: Other","Data should be private, static, and final whenever possible. This will assure that your code is protected by instantiating early, preventing access, and preventing tampering.",Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1041,Use of Redundant Code,PROHIBITED,Base,"The product has multiple functions, methods, procedures, macros, etc. that
+					contain the same code.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  For example, if there are two copies of the same code, the programmer might fix a weakness in one copy while forgetting to fix the same weakness in another copy.",Merge common functionality into a single function and then call that function from across the entire code base.,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1042,Static Member Data Element outside of a Singleton Class Element,PROHIBITED,Variant,"The code contains a member element that is declared as static (but not final), in which
+					its parent class element 
+					is not a singleton class - that is, a class element that can be used only once in
+					the 'to' association of a Create action.","Reduce Performance
+Scope: Other This issue can make the product perform more slowly.  If the relevant code is reachable by an attacker, then this performance problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1043,Data Element Aggregating an Excessively Large Number of Non-Primitive Elements,PROHIBITED,Base,"The product uses a data element that has an excessively large
+					number of sub-elements with non-primitive data types such as structures or aggregated objects.
+
+While the interpretation of ""excessively large"" may vary for each product or developer, CISQ recommends a default of 5 sub-elements.","Reduce Performance
+Scope: Other This issue can make the product perform more slowly.  If the relevant code is reachable by an attacker, then this performance problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1044,Architecture with Number of Horizontal Layers Outside of Expected Range,PROHIBITED,Base,"The product's architecture contains too many - or too few -
+					horizontal layers.
+
+While the interpretation of ""expected range"" may vary for each product or developer, CISQ recommends a default minimum of 4 layers and maximum of 8 layers.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1045,Parent Class with a Virtual Destructor and a Child Class without a Virtual Destructor,ALLOWED,Base,"A parent class has a virtual destructor method, but the parent has a child class that does not have a virtual destructor.","Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably, since the child might not perform essential destruction operations.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability, such as a memory leak ( CWE-401 ).",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1046,Creation of Immutable Text Using String Concatenation,ALLOWED,Base,"The product creates an immutable text string using string concatenation operations.
+
+When building a string via a looping feature (e.g., a FOR or WHILE loop), the use of += to append to the existing string will result in the creation of a new object with each iteration, which can be inefficient in comparison with use of text buffer data elements.","Reduce Performance
+Scope: Other This issue can make the product perform more slowly. If the relevant code is reachable by an attacker, then this could be influenced to create performance problem.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1047,Modules with Circular Dependencies,PROHIBITED,Base,"The product contains modules in which one module has references that cycle back to itself, i.e., there are circular dependencies.
+
+As an example, with Java, this weakness might indicate cycles between packages.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product due to insufficient modularity, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities. It can also prevent the product from running reliably.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1048,Invokable Control Element with Large Number of Outward Calls,PROHIBITED,Base,"The code contains callable control elements that
+         contain an excessively large number of references to other
+         application objects external to the context of the callable,
+         i.e. a Fan-Out value that is excessively large.
+
+While the interpretation of ""excessively large Fan-Out value"" may vary for each product or developer, CISQ recommends a default of 5 referenced objects.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1049,Excessive Data Query Operations in a Large Data Table,ALLOWED,Base,"The product performs a data query with a large number of joins
+					and sub-queries on a large data table.
+
+While the interpretation of ""large data table"" and ""large number of joins or sub-queries"" may vary for each product or developer, CISQ recommends a default of 1 million rows for a ""large"" data table, a default minimum of 5 joins, and a default minimum of 3 sub-queries.","Reduce Performance
+Scope: Other This issue can make the product perform more slowly.  If the relevant code is reachable by an attacker, then this performance problem might introduce a vulnerability.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1050,Excessive Platform Resource Consumption within a Loop,ALLOWED,Base,"The product has a loop body or loop condition that contains a control element that directly or
+					indirectly consumes platform resources, e.g. messaging, sessions, locks, or file
+					descriptors.
+
+","DoS: Resource Consumption (CPU); DoS: Resource Consumption (Memory); DoS: Resource Consumption (Other); Reduce Performance
+Scope: Availability This issue can make the product perform more slowly.  If an attacker can influence the number of iterations in the loop, then this performance problem might allow a denial of service by consuming more platform resources than intended.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1051,Initialization with Hard-Coded Network Resource Configuration Data,PROHIBITED,Base,The product initializes data using hard-coded values that act as network resource identifiers.,"Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably, e.g. if it runs in an environment does not use the hard-coded network resource identifiers. If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1052,Excessive Use of Hard-Coded Literals in Initialization,ALLOWED,Base,"The product initializes a data element using a hard-coded
+					literal that is not a simple integer or static constant element.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to modify or maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1053,Missing Documentation for Design,PROHIBITED,Base,The product does not have documentation that represents how it is designed.,"Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue can make it more difficult to understand and maintain the product. It can make it more difficult and time-consuming to detect and/or fix vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1054,Invocation of a Control Element at an Unnecessarily Deep Horizontal Layer,PROHIBITED,Base,"The code at one architectural layer invokes code that resides
+					at a deeper layer than the adjacent layer, i.e., the invocation skips at least one
+					layer, and the invoked code is not part of a vertical utility layer that can be referenced from any horizontal layer.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to understand and maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1055,Multiple Inheritance from Concrete Classes,PROHIBITED,Base,"The product contains a class with inheritance from more than
+					one concrete class.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1056,Invokable Control Element with Variadic Parameters,PROHIBITED,Base,"A named-callable or method control element has a signature that
+					supports a variable (variadic) number of parameters or arguments.","Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability. With variadic arguments, it can be difficult or inefficient for manual analysis to be certain of which function/method is being invoked.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1057,Data Access Operations Outside of Expected Data Manager Component,PROHIBITED,Base,"The product uses a dedicated, central data manager component as required by design, but it contains code that performs data-access operations that do not use this data manager.","Reduce Performance
+Scope: Availability This issue can make the product perform more slowly than intended, since the intended central data manager may have been explicitly optimized for performance or other quality characteristics.  If the relevant code is reachable by an attacker, then this performance problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1058,Invokable Control Element in Multi-Thread Context with non-Final Static Storable or Member Element,ALLOWED,Base,"The code contains a function or method that
+		 operates in a multi-threaded environment but owns an unsafe non-final
+		                     static storable or member data element.","Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1059,Insufficient Technical Documentation,PROHIBITED,Class,"The product does not contain sufficient
+         technical or engineering documentation (whether on paper or
+         in electronic form) that contains descriptions of all the
+         relevant software/hardware elements of the product, such as
+         its usage, structure, architectural components, interfaces, design, implementation,
+         configuration, operation, etc.
+
+When technical documentation is limited or lacking, products are more difficult to maintain.  This indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.
+When using time-limited or labor-limited third-party/in-house security consulting services (such as threat modeling, vulnerability discovery, or pentesting), insufficient documentation can force those consultants to invest unnecessary time in learning how the product is organized, instead of focusing their expertise on finding the flaws or suggesting effective mitigations.
+With respect to hardware design, the lack of a formal, final manufacturer reference can make it difficult or impossible to evaluate the final product, including post-manufacture verification. One cannot ensure that design functionality or operation is within acceptable tolerances, conforms to specifications, and is free from unexpected behavior. Hardware-related documentation may include engineering artifacts such as hardware description language (HDLs), netlists, Gerber files, Bills of Materials, EDA (Electronic Design Automation) tool files, etc.","Varies by Context; Hide Activities; Reduce Reliability; Quality Degradation; Reduce Maintainability
+Scope: Other Without a method of verification, one cannot be sure that everything only functions as expected.",Ensure that design documentation is detailed enough to allow for post-manufacturing verification.,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1060,Excessive Number of Inefficient Server-Side Data Accesses,PROHIBITED,Base,"The product performs too many data queries without using efficient data processing functionality such as stored procedures.
+
+While the interpretation of ""too many data queries"" may vary for each product or developer, CISQ recommends a default maximum of 5 data queries for an inefficient function/procedure.","Reduce Performance
+Scope: Other This issue can make the product perform more slowly due to computational expense.  If the relevant code is reachable by an attacker, then this performance problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1061,Insufficient Encapsulation,ALLOWED,Class,"The product does not sufficiently hide the internal representation and implementation details of data or methods, which might allow external components or modules to modify data unexpectedly, invoke unexpected functionality, or introduce dependencies that the programmer did not intend.","Varies by Context; Bypass Protection Mechanism
+Scope: Access Control An attacker can access data or methods that were not intended to be accessible.
+
+Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Examine children of this entry to see if there is a better fit,N/A
+1062,Parent Class with References to Child Class,PROHIBITED,Base,"The code has a parent class that contains references to a child class, its methods, or its members.","Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1063,Creation of Class Instance within a Static Code Block,PROHIBITED,Base,"A static code block creates an instance of a class.
+
+This pattern identifies situations where a storable data element or member data element is initialized with a value in a block of code which is declared as static.","Reduce Performance
+Scope: Other This issue can make the product perform more slowly by performing initialization before it is needed.  If the relevant code is reachable by an attacker, then this performance problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1064,Invokable Control Element with Signature Containing an Excessive Number of Parameters,PROHIBITED,Base,"The product contains a function, subroutine, or method whose signature has an unnecessarily large number of
+					parameters/arguments.
+
+While the interpretation of ""large number of parameters"" may vary for each product or developer, CISQ recommends a default maximum of 7 parameters/arguments.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to understand and/or maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1065,Runtime Resource Management Control Element in a Component Built to Run on Application Servers,PROHIBITED,Base,"The product uses deployed components from application servers, but it also uses low-level functions/methods for management of resources, instead of the API provided by the application server.","Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1066,Missing Serialization Control Element,PROHIBITED,Base,"The product contains a serializable data element that does not
+					have an associated serialization method.","Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably, e.g. by triggering an exception.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1067,Excessive Execution of Sequential Searches of Data Resource,ALLOWED,Base,"The product contains a data query against an SQL table or view
+					that is configured in a way that does not utilize an index and may cause
+					sequential searches to be performed.","Reduce Performance
+Scope: Availability This issue can make the product perform more slowly.  If the relevant code is reachable by an attacker, then this performance problem might introduce a vulnerability.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1068,Inconsistency Between Implementation and Documented Design,PROHIBITED,Base,"The implementation of the product is not consistent with the
+					design as described within the relevant documentation.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to maintain the product due to inconsistencies, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1069,Empty Exception Block,PROHIBITED,Variant,"An invokable code block contains an exception handling block that does not contain any code, i.e. is empty.","Reduce Reliability
+Scope: Other When an exception handling block (such as a Catch and Finally block) is used, but that block is empty, this can prevent the product from running reliably.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",For every exception block add code that handles the specific exception in the way intended by the application.,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1070,Serializable Data Element Containing non-Serializable Item Elements,PROHIBITED,Base,"The product contains a serializable, storable data element such as a field or member,
+					but the data element contains member elements that are not
+					serializable.","Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1071,Empty Code Block,ALLOWED,Base,"The source code contains a block that does not contain any code, i.e., the block is empty.
+
+Empty code blocks can occur in the bodies of conditionals, function or method definitions, exception handlers, etc.  While an empty code block might be intentional, it might also indicate incomplete implementation, accidental code deletion, unexpected macro expansion, etc.  For some programming languages and constructs, an empty block might be allowed by the syntax, but the lack of any behavior within the block might violate a convention or API in such a way that it is an error.","Reduce Reliability
+Scope: Other",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1072,Data Resource Access without Use of Connection Pooling,PROHIBITED,Base,"The product accesses a data resource through a database without using a
+					connection pooling capability.","Reduce Performance
+Scope: Other This issue can make the product perform more slowly, as connection pools allow connections to be reused without the overhead and time consumption of opening and closing a new connection.  If the relevant code is reachable by an attacker, then this performance problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1073,Non-SQL Invokable Control Element with Excessive Number of Data Resource Accesses,PROHIBITED,Base,"The product contains a client with a function or method that contains a large number of data accesses/queries that are sent through a data manager, i.e., does not use efficient database capabilities.
+
+While the interpretation of ""large number of data accesses/queries"" may vary for each product or developer, CISQ recommends a default maximum of 2 data accesses per function/method.","Reduce Performance
+Scope: Other This issue can make the product perform more slowly.  If the relevant code is reachable by an attacker, then this performance problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1074,Class with Excessively Deep Inheritance,PROHIBITED,Base,"A class has an inheritance level that is too high, i.e., it
+					has a large number of parent classes.
+
+While the interpretation of ""large number of parent classes"" may vary for each product or developer, CISQ recommends a default maximum of 7 parent classes.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to understand and maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1075,Unconditional Control Flow Transfer outside of Switch Block,ALLOWED,Base,"The product performs unconditional control transfer (such as a
+					""goto"") in code outside of a branching structure such as a switch
+					block.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1076,Insufficient Adherence to Expected Conventions,PROHIBITED,Class,"The product's architecture, source code, design, documentation,
+					or other artifact does not follow required conventions.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1077,Floating Point Comparison with Incorrect Operator,ALLOWED,Variant,"The code performs a comparison such as an
+        equality test between two float (floating point) values, but
+        it uses comparison operators that do not account for the
+        possibility of loss of precision.
+
+Numeric calculation using floating point values
+	   can generate imprecise results because of rounding errors.
+	   As a result, two different calculations might generate
+	   numbers that are mathematically equal, but have slightly
+	   different bit representations that do not translate to the
+	   same mathematically-equal values.  As a result, an equality
+	   test or other comparison might produce unexpected
+	   results.","Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1078,Inappropriate Source Code Style or Formatting,PROHIBITED,Class,"The source code does not follow
+				desired style or formatting for indentation, white
+				space, comments, etc.","Increase Analytical Complexity
+Scope: Other Variations in indentation and other white space,
+	       comments, etc.  can make it more difficult for human
+	       analysts to understand the actual behavior that is
+	       being implemented.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1079,Parent Class without Virtual Destructor Method,ALLOWED,Base,"A parent class contains one or more child classes, but the parent class does not have a virtual destructor method.","Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably due to undefined or unexpected behaviors.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1080,Source Code File with Excessive Number of Lines of Code,PROHIBITED,Base,"A source code file has too many lines of
+					code.
+
+While the interpretation of ""too many lines of code"" may vary for each product or developer, CISQ recommends a default threshold value of 1000.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to understand and/or maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1082,Class Instance Self Destruction Control Element,PROHIBITED,Base,"The code contains a class instance that calls the method or function to delete or destroy itself.
+
+For example, in C++, ""delete this"" will cause the object to delete itself.","Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1083,Data Access from Outside Expected Data Manager Component,PROHIBITED,Base,"The product is intended to manage data access through a particular data manager component such as a relational or non-SQL database, but it contains code that performs data access operations without using that component.
+
+When the product has a data access component, the design may be intended to handle all data access operations through that component.  If a data access operation is performed outside of that component, then this may indicate a violation of the intended design.","Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1084,Invokable Control Element with Excessive File or Data Access Operations,PROHIBITED,Base,"A function or method contains too many
+					operations that utilize a data manager or file resource.
+
+While the interpretation of ""too many operations"" may vary for each product or developer, CISQ recommends a default maximum of 7 operations for the same data manager or file.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1085,Invokable Control Element with Excessive Volume of Commented-out Code,PROHIBITED,Base,"A function, method, procedure, etc. contains an excessive amount of code that has been
+					commented out within its body.
+
+While the interpretation of ""excessive volume"" may vary for each product or developer, CISQ recommends a default threshold of 2% of commented code.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1086,Class with Excessive Number of Child Classes,PROHIBITED,Base,"A class contains an unnecessarily large number of
+					children.
+
+While the interpretation of ""large number of children"" may vary for each product or developer, CISQ recommends a default maximum of 10 child classes.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to understand and maintain the software, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1087,Class with Virtual Method without a Virtual Destructor,ALLOWED,Base,"A class contains a virtual method, but the method does not have an associated virtual destructor.","Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably, e.g. due to undefined behavior.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1088,Synchronous Access of Remote Resource without Timeout,ALLOWED,Base,"The code has a synchronous call to a remote resource, but there is no timeout for the call, or the timeout is set to infinite.","Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably, since an outage for the remote resource can cause the product to hang.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1089,Large Data Table with Excessive Number of Indices,ALLOWED,Base,"The product uses a large data table that contains an excessively large number of
+					indices.
+
+While the interpretation of ""large data table"" and ""excessively large number of indices"" may vary for each product or developer, CISQ recommends a default threshold of 1000000 rows for a ""large"" table and a default threshold of 3 indices.","Reduce Performance
+Scope: Other This issue can make the product perform more slowly.  If the relevant code is reachable by an attacker, then this performance problem might introduce a vulnerability.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1090,Method Containing Access of a Member Element from Another Class,PROHIBITED,Base,"A method for a class performs an operation that directly
+					accesses a member element from another class.
+
+","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue suggests poor encapsulation and makes it more difficult to understand and maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1091,Use of Object without Invoking Destructor Method,ALLOWED,Base,"The product contains a method that accesses an object but does not later invoke
+					the element's associated finalize/destructor method.","Reduce Performance
+Scope: Other This issue can make the product perform more slowly by retaining memory and/or other resources longer than necessary.  If the relevant code is reachable by an attacker, then this performance problem might introduce a vulnerability.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1092,Use of Same Invokable Control Element in Multiple Architectural Layers,PROHIBITED,Base,"The product uses the same control element across multiple
+					architectural layers.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to understand and maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1093,Excessively Complex Data Representation,ALLOWED,Class,The product uses an unnecessarily complex internal representation for its data structures or interrelationships between those structures.,"Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to understand or maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.
+
+Reduce Performance
+Scope: Other",N/A,Examine children of this entry to see if there is a better fit,N/A
+1094,Excessive Index Range Scan for a Data Resource,PROHIBITED,Base,"The product contains an index range scan for a large data table,
+					but the scan can cover a large number of rows.
+
+While the interpretation of ""large data table"" and ""excessive index range"" may vary for each product or developer, CISQ recommends a threshold of 1000000 table rows and a threshold of 10 for the index range.","Reduce Performance
+Scope: Other This issue can make the product perform more slowly.  If the relevant code is reachable by an attacker, then this performance problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1095,Loop Condition Value Update within the Loop,PROHIBITED,Base,"The product uses a loop with a control flow condition based on
+					a value that is updated within the body of the loop.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to understand and/or maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1096,Singleton Class Instance Creation without Proper Locking or Synchronization,ALLOWED,Variant,The product implements a Singleton design pattern but does not use appropriate locking or other synchronization mechanism to ensure that the singleton class is only instantiated once.,"Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably, e.g. by making the instantiation process non-thread-safe and introducing deadlock ( CWE-833 ) or livelock conditions.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1097,Persistent Storable Data Element without Associated Comparison Control Element,PROHIBITED,Base,"The product uses a storable data element that does not have
+					all of the associated functions or methods that are necessary to support
+					comparison.","Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably, due to incorrect or unexpected comparison results.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1098,Data Element containing Pointer Item without Proper Copy Control Element,ALLOWED,Base,The code contains a data element with a pointer that does not have an associated copy or constructor method.,"Reduce Reliability
+Scope: Other This issue can prevent the product from running reliably.  If the relevant code is reachable by an attacker, then this reliability problem might introduce a vulnerability.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1099,Inconsistent Naming Conventions for Identifiers,PROHIBITED,Base,"The product's code, documentation, or other artifacts do not
+					consistently use the same naming conventions for variables, callables, groups of
+					related callables, I/O capabilities, data types, file names, or similar types of
+					elements.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to understand and/or maintain the product due to inconsistencies, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1100,Insufficient Isolation of System-Dependent Functions,ALLOWED,Base,"The product or code does not isolate system-dependent
+					functionality into separate standalone modules.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain and/or port the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1101,Reliance on Runtime Component in Generated Code,PROHIBITED,Base,"The product uses automatically-generated code that cannot be
+					executed without a specific runtime support component.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1102,Reliance on Machine-Dependent Data Representation,ALLOWED,Base,"The code uses a data representation that relies on low-level
+					data representation or constructs that may vary across different processors,
+					physical machines, OSes, or other physical components.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain and/or port the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1103,Use of Platform-Dependent Third Party Components,PROHIBITED,Base,"The product relies on third-party components that do
+					not provide equivalent functionality across all desirable
+					platforms.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1104,Use of Unmaintained Third Party Components,ALLOWED,Base,"The product relies on third-party components that are not
+					actively supported or maintained by the original developer or a trusted proxy
+					for the original developer.","Reduce Maintainability; Varies by Context
+Scope: Other Relying on unmaintained components makes it difficult or impossible to fix significant bugs and vulnerabilities, can render code obsolete, and undermine security by complicating maintenance and increasing the risk of new vulnerabilities.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1105,Insufficient Encapsulation of Machine-Dependent Functionality,PROHIBITED,Base,"The product or code uses machine-dependent functionality, but
+					it does not sufficiently encapsulate or isolate this functionality from
+					the rest of the code.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to port or maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1106,Insufficient Use of Symbolic Constants,PROHIBITED,Base,"The source code uses literal constants that may need to change
+					or evolve over time, instead of using symbolic constants.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1107,Insufficient Isolation of Symbolic Constant Definitions,PROHIBITED,Base,"The source code uses symbolic constants, but it does not
+					sufficiently place the definitions of these constants into a more centralized or
+					isolated location.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1108,Excessive Reliance on Global Variables,ALLOWED,Base,"The code is structured in a way that relies too much on using
+					or setting global variables throughout various points in the code, instead of
+					preserving the associated information in a narrower, more local
+					context.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1109,Use of Same Variable for Multiple Purposes,PROHIBITED,Base,"The code contains a callable, block, or other code element in
+					which the same variable is used to control more than one unique task or store
+					more than one instance of data.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.
+
+Increase Analytical Complexity
+Scope: Other Use of the same variable for multiple purposes can make it more difficult for a person to read or understand the code, potentially hiding other quality issues.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1110,Incomplete Design Documentation,PROHIBITED,Base,"The product's design documentation does not adequately describe
+					control flow, data flow, system initialization, relationships between tasks,
+					components, rationales, or other important aspects of the
+					design.","Reduce Maintainability
+Scope: Other
+
+Increase Analytical Complexity
+Scope: Other",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1111,Incomplete I/O Documentation,PROHIBITED,Base,"The product's documentation does not adequately define inputs,
+					outputs, or system/software interfaces.","Reduce Maintainability
+Scope: Other
+
+Increase Analytical Complexity
+Scope: Other",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1112,Incomplete Documentation of Program Execution,PROHIBITED,Base,"The document does not fully define all mechanisms that are used
+					to control or influence how product-specific programs are
+					executed.
+
+This includes environmental variables, configuration files, registry keys, command-line switches or options, or system settings.","Reduce Maintainability
+Scope: Other
+
+Increase Analytical Complexity
+Scope: Other",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1113,Inappropriate Comment Style,PROHIBITED,Base,"The source code uses comment styles or formats that are
+					inconsistent or do not follow expected standards for the
+					product.","Reduce Maintainability
+Scope: Other
+
+Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to maintain the product due to insufficient legibility, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1114,Inappropriate Whitespace Style,PROHIBITED,Base,"The source code contains whitespace that is inconsistent across
+					the code or does not follow expected standards for the
+					product.","Increase Analytical Complexity
+Scope: Other A human auditor might indirectly trust that
+	       whitespace (especially indentation) reflects the actual
+	       control flow of the code, which could make it more
+	       difficult to find vulnerabilities.
+
+Reduce Maintainability
+Scope: Other This issue makes it more difficult to understand
+	       and maintain the product, which indirectly affects
+	       security by making it more difficult or time-consuming
+	       to find and/or fix vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1115,Source Code Element without Standard Prologue,PROHIBITED,Base,"The source code contains elements such as source files 
+					that do not consistently provide a prologue or header that has been
+					standardized for the project.
+
+Standard prologues or headers may contain information such as module name, version number, author, date, purpose, function, assumptions, limitations, accuracy considerations, etc.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product due to insufficient analyzability, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.
+
+Increase Analytical Complexity
+Scope: Other The lack of a prologue can make it more difficult to accurately and quickly understand the associated code.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1116,Inaccurate Source Code Comments,ALLOWED,Base,"The source code contains comments that do not accurately
+					describe or explain aspects of the portion of the code with which the comment is
+					associated.
+
+","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.
+
+Increase Analytical Complexity
+Scope: Other When a comment does not accurately reflect the associated code elements, this can introduce confusion to a reviewer (due to inconsistencies) or make it more difficult and less efficient to validate that the code is implementing the intended behavior correctly.",Verify that each comment accurately reflects what is intended to happen during execution of the code.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1117,Callable with Insufficient Behavioral Summary,PROHIBITED,Base,"The code contains a function or method whose signature and/or associated
+					inline documentation does not sufficiently describe the callable's inputs, outputs,
+					side effects, assumptions, or return codes.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1118,Insufficient Documentation of Error Handling Techniques,PROHIBITED,Base,"The documentation does not sufficiently describe the techniques
+					that are used for error handling, exception processing, or similar
+					mechanisms.
+
+Documentation may need to cover error handling techniques at multiple layers, such as module, executable, compilable code unit, or callable.","Reduce Maintainability
+Scope: Other",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1119,Excessive Use of Unconditional Branching,PROHIBITED,Base,"The code uses too many unconditional branches (such as
+					""goto"").","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to understand and/or maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1120,Excessive Code Complexity,ALLOWED,Class,"The code is too complex, as calculated using a well-defined,
+					quantitative measure.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to understand and/or maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.
+
+Reduce Performance
+Scope: Other This issue can make the product perform more slowly.  If the relevant code is reachable by an attacker, then this performance problem might introduce a vulnerability.",N/A,Examine children of this entry to see if there is a better fit,N/A
+1121,Excessive McCabe Cyclomatic Complexity,PROHIBITED,Base,"The code contains McCabe cyclomatic complexity that exceeds a
+	desirable maximum.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to understand and/or maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1122,Excessive Halstead Complexity,PROHIBITED,Base,"The code is structured in a way that a Halstead complexity
+					measure exceeds a desirable maximum.
+
+A variety of Halstead complexity measures exist, such as program vocabulary size or volume.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to understand and/or maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1123,Excessive Use of Self-Modifying Code,ALLOWED,Base,The product uses too much self-modifying code.,"Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to understand or maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1124,Excessively Deep Nesting,PROHIBITED,Base,"The code contains a callable or other code grouping in which
+					the nesting / branching is too deep.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1125,Excessive Attack Surface,PROHIBITED,Base,"The product has an attack surface whose quantitative
+					measurement exceeds a desirable maximum.
+
+Originating from software security, an ""attack surface"" measure typically reflects the number of input points and output points that can be utilized by an untrusted party, i.e. a potential attacker. A larger attack surface provides more places to attack, and more opportunities for developers to introduce weaknesses.  In some cases, this measure may reflect other aspects of quality besides security; e.g., a product with many inputs and outputs may require a large number of tests in order to improve code coverage.","Varies by Context
+Scope: Other",N/A,Look for weaknesses that are focused specifically on insecure behaviors that have more direct security implications.,N/A
+1126,Declaration of Variable with Unnecessarily Wide Scope,ALLOWED,Base,"The source code declares a variable in one scope, but the
+					variable is only used within a narrower scope.","Reduce Maintainability; Increase Analytical Complexity
+Scope: Other This issue makes it more difficult to understand and/or maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1127,Compilation with Insufficient Warnings or Errors,ALLOWED,Base,"The code is compiled without sufficient warnings enabled, which
+					may prevent the detection of subtle bugs or quality
+					issues.","Reduce Maintainability
+Scope: Other This issue makes it more difficult to maintain the product, which indirectly affects security by making it more difficult or time-consuming to find and/or fix vulnerabilities.  It also might make it easier to introduce vulnerabilities.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1164,Irrelevant Code,ALLOWED,Class,"The product contains code that is not essential for execution,
+	     i.e. makes no state changes and has no side effects that alter
+	     data or control flow, such that removal of the code would have no impact
+	     to functionality or correctness.
+
+Irrelevant code could include dead code,
+	     initialization that is not used, empty blocks, code that could be entirely
+	     removed due to optimization, etc.","Reduce Reliability
+Scope: Other
+
+Reduce Performance
+Scope: Other",N/A,Examine children of this entry to see if there is a better fit,N/A
+1173,Improper Use of Validation Framework,ALLOWED,Base,"The product does not use, or incorrectly uses, an input validation framework that is provided by the source language or an independent library.
+
+Many modern coding languages provide developers with input validation frameworks to make the task of input validation easier and less error-prone. These frameworks will automatically check all input against specified criteria and direct execution to error handlers when invalid input is received. The improper use (i.e., an incorrect implementation or missing altogether) of these frameworks is not directly exploitable, but can lead to an exploitable condition if proper input validation is not performed later in the product. Not using provided input validation frameworks can also hurt the maintainability of code as future developers may not recognize the downstream input validation being used in the place of the validation framework.","Unexpected State
+Scope: Integrity Unchecked input leads to cross-site scripting, process control, and SQL injection vulnerabilities, among others.",Properly use provided input validation frameworks.,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1174,ASP.NET Misconfiguration: Improper Model Validation,ALLOWED,Variant,"The ASP.NET application does not use, or incorrectly uses, the model validation framework.","Unexpected State
+Scope: Integrity Unchecked input leads to cross-site scripting, process control, and SQL injection vulnerabilities, among others.",N/A,Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to 'force' a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.,N/A
+1176,Inefficient CPU Computation,ALLOWED,Class,"The product performs CPU computations using
+         algorithms that are not as efficient as they could be for the
+         needs of the developer, i.e., the computations can be
+         optimized further.","Reduce Performance; DoS: Resource Consumption (CPU)
+Scope: Availability This issue can make the product perform more slowly, possibly in ways that are noticeable to the users.  If an attacker can influence the amount of computation that must be performed, e.g. by triggering worst-case complexity, then this performance problem might introduce a vulnerability.",N/A,Examine children of this entry to see if there is a better fit,N/A
+1177,Use of Prohibited Code,ALLOWED,Class,"The product uses a function, library, or third party component
+	     that has been explicitly prohibited, whether by the developer or
+	     the customer.
+
+The developer - or customers - may wish to restrict or eliminate use of a function, library, or third party component for any number of reasons, including real or suspected vulnerabilities; difficulty to use securely; export controls or license requirements; obsolete or poorly-maintained code; internal code being scheduled for deprecation; etc.
+To reduce risk of vulnerabilities, the developer might maintain a list of ""banned"" functions that programmers must avoid using because the functions are difficult or impossible to use securely.  This issue can also make the product more costly and difficult to maintain.","Reduce Maintainability
+Scope: Other",N/A,Examine children of this entry to see if there is a better fit,N/A
+1357,Reliance on Insufficiently Trustworthy Component,ALLOWED,Class,"The product is built from multiple separate components, but it uses a component that is not sufficiently trusted to meet expectations for security, reliability, updateability, and maintainability.
+
+Many modern hardware and software products are built by combining multiple smaller components together into one larger entity, often during the design or architecture phase. For example, a hardware component might be built by a separate supplier, or the product might use an open-source software library from a third party.
+Regardless of the source, each component should be sufficiently trusted to ensure correct, secure operation of the product. If a component is not trustworthy, it can produce significant risks for the overall product, such as vulnerabilities that cannot be patched fast enough (if at all); hidden functionality such as malware; inability to update or replace the component if needed for security purposes; hardware components built from parts that do not meet specifications in ways that can lead to weaknesses; etc. Note that a component might not be trustworthy even if it is owned by the product vendor, such as a software component whose source code is lost and was built by developers who left the company, or a component that was developed by a separate company that was acquired and brought into the product's own company.
+Note that there can be disagreement as to whether a component is sufficiently trustworthy, since trust is ultimately subjective. Different stakeholders (e.g., customers, vendors, governments) have various threat models and ways to assess trust, and design/architecture choices might make tradeoffs between security, reliability, safety, privacy, cost, and other characteristics.","Reduce Maintainability
+Scope: Other","For each component, ensure that its supply chain is well-controlled with sub-tier suppliers using best practices. For third-party software components such as libraries, ensure that they are developed and actively maintained by reputable vendors.
+----------------
+Maintain a Bill of Materials for all components and sub-components of the product. For software, maintain a Software Bill of Materials (SBOM). According to [ REF-1247 ], ""An SBOM is a formal, machine-readable inventory of software components and dependencies, information about those components, and their hierarchical relationships.""
+----------------
+Continue to monitor changes in each of the product's components, especially when the changes indicate new vulnerabilities, end-of-life (EOL) plans, supplier practices that affect trustworthiness, etc.",Examine children of this entry to see if there is a better fit,N/A
