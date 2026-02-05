@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import SearchPage from "../pages/search_Page";
 import TablesListPage from "../pages/Tables_list_Page";
 import FindingPage from "../pages/Finding_Page";
+import "./App.css"; // Global styles
 
 function App() {
   return (

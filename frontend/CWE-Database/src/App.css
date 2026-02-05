@@ -1,28 +1,187 @@
+/* App.css */
+
+/* Sabse zaruri: Ye class content ko center mein rakhti hai */
 .page {
-  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;   /* Center Aligning the container */
+  padding: 50px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centering children horizontally */
+  text-align: center;
 }
 
-input {
-  padding: 8px;
-  margin-right: 10px;
+h2 {
+  color: #ff3e3e; /* Neon Red */
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 30px;
+}
+
+/* Search Bar Alignment */
+.search-box {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+input[type="text"] {
+  background: #111;
+  border: 1px solid #333;
+  padding: 14px 20px;
+  border-radius: 6px;
+  color: white;
+  width: 350px;
 }
 
 button {
-  padding: 8px 12px;
+  background-color: #ff3e3e;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  font-weight: bold;
+  border-radius: 6px;
   cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background-color: #cc0000;
+  transform: translateY(-2px);
+}
+
+/* Cards (Table List) - Proper Centered Stack */
+.cards-wrapper {
+  width: 100%;
+  max-width: 650px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 30px;
 }
 
 .card {
-  padding: 10px;
-  margin: 8px 0;
-  border: 1px solid #ccc;
+  background: #121212;
+  border: 1px solid #222;
+  padding: 20px;
+  border-radius: 8px;
   cursor: pointer;
+  text-align: left; /* Text inside card is left, but card itself is centered */
+  transition: 0.3s;
+  color: #bbb;
 }
 
 .card:hover {
-  background: #f5f5f5;
+  border-left: 5px solid #ff3e3e;
+  background: #1a1a1a;
+  color: #fff;
 }
 
-.pagination {
+.detail-container {
+  width: 100%;
+  max-width: 98%;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction:column;
+  align-items: center;
+}
+
+.detail-header.h2 {
+  align-items: center;
+}
+
+/* Finding Page Table - Professional Centered Look */
+.table-wrapper {
+  width: 95%;
+  max-width: 1500px;
   margin-top: 20px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 12px;
+  overflow-x: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.data-display-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 400px;
+}
+
+.detail-row td {
+  padding: 20px;
+  border-bottom: 1px solid #1a1a1a;
+  text-align: left;
+  vertical-align: top;
+}
+
+.key-cell {
+  width: 20%;
+  min-width: 150px;
+  background: #0d0d0d;
+  padding: 25px 20px;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.key-cell b {
+  color: #ff3e3e;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.value-cell {
+  width: 80%;
+  padding: 25px 20px;
+  color: #ccc;
+  border-bottom: 1px solid #1a1a1a;
+  line-height: 1.6;
+  text-align: left;
+}
+
+/* Pagination Control */
+.pagination {
+  margin-top: 40px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+@media (max-width: 1024px) {
+  .table-wrapper {
+    width: 95%;
+  }
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 20px 10px;
+  }
+
+  .key-cell {
+    width: 40%; /*this is for mobile par label ke liye zyada space*/
+    padding: 12px;
+    font-size: 0.7rem;
+  }
+
+  .value-cell {
+    padding: 12px;
+    font-size: 0.85rem;
+    width: 65%;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  @media (max-width: 480px) {
+    .table-wrapper {
+      width: 100%; /* Mobile par full width */
+      border-radius: 0; /* Corner radius hata sakte ho mobile feel ke liye */
+    }
+    
+    .key-cell {
+      width: 35%;
+    }
+  }
 }

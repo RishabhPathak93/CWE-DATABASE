@@ -1,4 +1,6 @@
 from pathlib import Path
+import environ
+import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-qse10ti8+$neag5s=hulb9kyms1$ld5!-2^6jd$24chsy*^4ev'
 DEBUG = True
@@ -41,16 +43,23 @@ TEMPLATES = [
     },
 ]
 WSGI_APPLICATION = 'CWE_Database.wsgi.application'
+env = environ.Env( DEBUG=(bool, False) )
+
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'C_W_E_Database',
-        'USER': 'postgres',
-        'PASSWORD': '########',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
     }
 }
+
+DEBUG = env('DEBUG', default=False)
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

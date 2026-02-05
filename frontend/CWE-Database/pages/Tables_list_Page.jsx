@@ -25,38 +25,46 @@ const TablesListPage = () => {
   const totalPages = Math.ceil(tables.length / ITEMS_PER_PAGE);
 
   return (
-    <div className="page">
+    <div className="page list-container">
+      {/* Back to Search Button */}
+      <button className="back-btn-small" onClick={() => navigate("/")}>
+        ← New Search
+      </button>
+
       <h2>Tables containing CWE-{cweId}</h2>
 
-      {paginatedTables.map((table) => (
-        <div
-          key={table}
-          className="card"
-          onClick={() =>
-            navigate(`/finding?cwe=${cweId}&table=${table}`)
-          }
-        >
-          {table}
+      <div className="cards-wrapper">
+    {paginatedTables.map((table) => (
+        <div key={table} className="card" onClick={() => navigate(`/finding?cwe=${cweId}&table=${table}`)}>
+            {table.replace(/_/g, ' ')}
         </div>
-      ))}
+    ))}
+</div>
 
       {/* Pagination */}
-      <div className="pagination">
-        <button disabled={page === 1} onClick={() => setPage(page - 1)}>
-          Prev
-        </button>
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button 
+            className="pagi-btn" 
+            disabled={page === 1} 
+            onClick={() => setPage(page - 1)}
+          >
+            Prev
+          </button>
 
-        <span>
-          Page {page} / {totalPages}
-        </span>
+          <span className="page-info">
+            Page <b>{page}</b> of <b>{totalPages}</b>
+          </span>
 
-        <button
-          disabled={page === totalPages}
-          onClick={() => setPage(page + 1)}
-        >
-          Next
-        </button>
-      </div>
+          <button
+            className="pagi-btn"
+            disabled={page === totalPages || totalPages === 0}
+            onClick={() => setPage(page + 1)}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

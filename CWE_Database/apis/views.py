@@ -30,8 +30,13 @@ def find_cwe_tables(request):
     for entry in CWETableRegistry.objects.all():
         table = entry.table_name
 
+        
+        print(f"Checking table: {table}") 
+        
+
         # ✅ Skip stale / missing tables
         if not table_exists(table):
+            print(f"Table {table} does not exist in schema!")
             continue
 
         with connection.cursor() as cursor:
